@@ -1,0 +1,16 @@
+exclude_dirs:
+  - tests
+  - migrations
+  - data
+  - logs
+  - .git
+  - .pytest_cache
+  - htmlcov
+  - .venv
+
+skips:
+  - B101  # assert_used
+  - B108  # hardcoded_tmp_directory
+  - B311  # blacklist (random for non-crypto purposes)
+  # B104 (bind all interfaces), B105/B106 (hardcoded password) are NOT skipped:
+  # they catch real issues. Justify legitimate cases inline with `# nosec Bxxx`.

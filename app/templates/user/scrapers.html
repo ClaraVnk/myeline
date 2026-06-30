@@ -1,0 +1,454 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("My sources") }} — Pro — Myeline{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:860px;">
+
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h2 class="fw-semibold mb-0">📡 {{ _("My sources") }}</h2>
+        <span class="badge px-2 py-1" style="background:rgba(0,122,255,.12);color:#0057b8;font-size:.65rem;border-radius:.5rem;">{{ _("Beta") }}</span>
+      </div>
+      <p class="text-muted mb-0">
+        {{ _("Add your own sources — articles are indexed exclusively for you.") }}
+        <span class="badge {% if max_sources is not none and quota_used >= max_sources %}bg-danger{% elif max_sources is not none and quota_used >= max_sources * 0.8 %}bg-warning text-dark{% else %}bg-secondary{% endif %} ms-1">
+          {{ quota_used }}{% if max_sources is not none %} / {{ max_sources }}{% endif %} {{ _("sources") }}
+        </span>
+      </p>
+    </div>
+    {% if max_sources is none or quota_used < max_sources %}
+    <button class="btn btn-primary btn-sm" id="openAddBtn">+ {{ _("Add a source") }}</button>
+    {% else %}
+    <span class="badge bg-warning text-dark align-self-center">{{ _("Quota reached") }} ({{ max_sources }} {{ _("sources") }})</span>
+    {% endif %}
+  </div>
+
+  {% if available_tags %}
+  <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+    <span class="text-muted small me-1">🏷️ {{ _("Filter by tag:") }}</span>
+    <a href="{{ url_for('user_scrapers.scraper_list') }}"
+       class="badge rounded-pill {{ 'bg-primary' if not tag_filter else 'bg-secondary text-white' }} text-decoration-none">
+      {{ _("All") }}
+    </a>
+    {% for tag in available_tags %}
+    <a href="{{ url_for('user_scrapers.scraper_list', tag=tag.name) }}"
+       class="badge rounded-pill {{ 'bg-primary' if tag_filter == tag.name else 'bg-secondary text-white' }} text-decoration-none">
+      {{ tag.name }}
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div id="addZone" class="card border-0 shadow-sm mb-4 d-none">
+    <div class="card-body p-4">
+      <h6 class="fw-semibold mb-3">{{ _("New source") }}</h6>
+      <div class="mb-3">
+        <label class="form-label fw-medium">{{ _("Name") }}</label>
+        <input type="text" id="scraperName" class="form-control" placeholder="{{ _('E.g.: Le Monde, BBC News…') }}" maxlength="255">
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-medium">{{ _("URL") }}</label>
+        <input type="url" id="scraperUrl" class="form-control" placeholder="https://www.example.com or https://www.example.com/rss">
+        <div class="form-text">{{ _("Any URL: RSS/Atom feed or regular article page. Detection is automatic.") }}</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-medium">{{ _("Scrape since") }} <small class="text-muted fw-normal">({{ _("optional") }})</small></label>
+        <input type="date" id="scraperSince" class="form-control" style="max-width:220px;">
+        <div class="form-text">{{ _("Only retrieve articles published after this date.") }}</div>
+      </div>
+      <div id="addAlert" class="alert d-none mb-3"></div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary btn-sm" id="addScraperBtn">{{ _("Add") }}</button>
+        <button class="btn btn-outline-secondary btn-sm" id="cancelAddBtn">{{ _("Cancel") }}</button>
+      </div>
+    </div>
+  </div>
+
+  {% if scrapers or pagination.total %}
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-1">
+      <span class="small text-muted me-1">{{ _("Show:") }}</span>
+      {% for n in [10, 50, 100] %}
+      <a href="{{ url_for('user_scrapers.scraper_list', tag=tag_filter or None, page=1, per_page=n) }}"
+         class="btn btn-sm {{ 'btn-primary' if per_page == n else 'btn-outline-secondary' }}">{{ n }}</a>
+      {% endfor %}
+    </div>
+    {% if pagination.pages > 1 %}
+    <nav aria-label="{{ _('Pagination') }}">
+      <ul class="pagination pagination-sm mb-0">
+        <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+          <a class="page-link" href="{{ url_for('user_scrapers.scraper_list', tag=tag_filter or None, page=pagination.prev_num, per_page=per_page) }}">‹</a>
+        </li>
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if p %}
+          <li class="page-item {{ 'active' if p == pagination.page }}">
+            <a class="page-link" href="{{ url_for('user_scrapers.scraper_list', tag=tag_filter or None, page=p, per_page=per_page) }}">{{ p }}</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+          {% endif %}
+        {% endfor %}
+        <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+          <a class="page-link" href="{{ url_for('user_scrapers.scraper_list', tag=tag_filter or None, page=pagination.next_num, per_page=per_page) }}">›</a>
+        </li>
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if scrapers %}
+  <div class="d-flex flex-column gap-3" id="scraperList">
+    {% for scraper in scrapers %}
+    <div class="card border-0 shadow-sm scraper-card" id="card-{{ scraper.id }}">
+      <div class="card-body p-3">
+
+        <div class="d-flex align-items-start gap-3 flex-wrap">
+          <div class="flex-grow-1 min-width-0">
+            <div class="fw-semibold text-truncate mb-1">{{ scraper.name }}</div>
+            <div class="small text-muted text-truncate mb-1">
+              <a href="{{ scraper.url | safe_url }}" target="_blank" rel="noopener" class="text-decoration-none text-muted">{{ scraper.url }}</a>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="badge {% if scraper.scraper_type == 'rss' %}bg-primary-subtle text-primary border border-primary{% else %}bg-warning-subtle text-warning-emphasis border border-warning{% endif %}" style="font-size:.6rem;">
+                {% if scraper.scraper_type == 'rss' %}📡 RSS{% else %}🌐 HTML{% endif %}
+              </span>
+              {% if scraper.last_error %}
+                <span class="badge bg-danger-subtle text-danger border border-danger" style="font-size:.65rem;">⚠️ {{ _("Error") }}</span>
+                <small class="text-danger">{{ scraper.last_error[:80] }}</small>
+              {% elif scraper.last_scraped_at %}
+                <span class="badge bg-success-subtle text-success border border-success" style="font-size:.65rem;">✓ OK</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary border" style="font-size:.65rem;">{{ _("Pending") }}</span>
+              {% endif %}
+              <small class="text-muted">{{ ngettext("%(num)d article", "%(num)d articles", scraper.article_count) }}</small>
+              {% if scraper.last_scraped_at %}
+              <small class="text-muted">· {{ scraper.last_scraped_at.strftime('%d/%m/%Y %H:%M') }}</small>
+              {% endif %}
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-2">
+              <small class="text-muted">{{ _("Since:") }}</small>
+              <input type="date" class="form-control form-control-sm since-input"
+                     style="max-width:160px;"
+                     data-scraper-id="{{ scraper.id }}"
+                     value="{{ scraper.scrape_since.strftime('%Y-%m-%d') if scraper.scrape_since else '' }}">
+              <button class="btn btn-outline-secondary btn-sm since-save-btn" data-scraper-id="{{ scraper.id }}">{{ _("Save") }}</button>
+            </div>
+          </div>
+          <div class="d-flex gap-1 align-items-center flex-shrink-0 flex-wrap">
+            <select class="form-select form-select-sm freq-select"
+                    data-scraper-id="{{ scraper.id }}"
+                    style="max-width:110px;"
+                    title="{{ _('Refresh frequency') }}"
+                    aria-label="{{ _('Frequency') }}">
+              <option value="daily"   {% if scraper.scrape_frequency == 'daily'   or not scraper.scrape_frequency %}selected{% endif %}>{{ _("Daily") }}</option>
+              <option value="weekly"  {% if scraper.scrape_frequency == 'weekly'  %}selected{% endif %}>{{ _("Weekly") }}</option>
+              <option value="monthly" {% if scraper.scrape_frequency == 'monthly' %}selected{% endif %}>{{ _("Monthly") }}</option>
+            </select>
+            <button class="btn btn-outline-secondary btn-sm articles-toggle-btn" data-scraper-id="{{ scraper.id }}" title="{{ _('View articles') }}">📄 {{ _("Articles") }}</button>
+            <button class="btn btn-outline-secondary btn-sm refresh-btn" data-scraper-id="{{ scraper.id }}" title="{{ _('Refresh') }}">↻</button>
+            <button class="btn btn-outline-danger btn-sm delete-btn" data-scraper-id="{{ scraper.id }}" title="{{ _('Delete') }}">🗑️</button>
+          </div>
+        </div>
+
+        <div class="articles-panel mt-3 d-none border-top pt-3" id="articles-panel-{{ scraper.id }}">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="small fw-semibold text-muted">{{ _("Indexed articles") }}</span>
+            <button class="btn btn-link btn-sm text-muted p-0 articles-refresh-btn"
+                    data-scraper-id="{{ scraper.id }}" style="font-size:.75rem;">↻ {{ _("Refresh") }}</button>
+          </div>
+          <div class="articles-list" id="articles-list-{{ scraper.id }}">
+            <span class="small text-muted">{{ _("Loading…") }}</span>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-5 text-center text-muted">
+      <div style="font-size:2.5rem;opacity:.3;">📡</div>
+      <p class="mt-3 mb-1">{{ _("No sources yet.") }}</p>
+      <p class="small">{{ _("Add a URL (webpage or RSS feed) to enrich your personal search space.") }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="mt-4 p-3 rounded" style="background:rgba(0,0,0,.04);font-size:.8rem;color:#666;">
+    <p class="mb-2">
+      📡 <strong>{{ _("RSS/Atom feeds") }}</strong> — {{ _("Paste the URL of any RSS or Atom feed for reliable, structured indexing.") }}
+    </p>
+    <p class="mb-2">
+      🌐 <strong>{{ _("Web pages") }}</strong>
+      <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem;">{{ _("Beta") }}</span>
+      — {{ _("You can add any web page URL. We'll try to extract and index its content automatically, but results are not guaranteed — complex pages or those blocking scrapers may not work correctly.") }}
+    </p>
+    <p class="mb-0 text-muted">
+      {{ _("Indexed content appears in AI search under <em>My documents</em> or <em>Both</em>. Refresh frequency is configurable per source.") }}
+    </p>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script nonce="{{ csp_nonce() }}">
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "{{ csrf_token() }}";
+
+const I18N = {
+  nameAndUrlRequired: {{ _("Name and URL required.") | tojson }},
+  adding: {{ _("Adding…") | tojson }},
+  add: {{ _("Add") | tojson }},
+  reloading: {{ _("Reloading…") | tojson }},
+  confirmDelete: {{ _("Delete this source and all its indexed articles?") | tojson }},
+  deleteError: {{ _("Error deleting.") | tojson }},
+  loading: {{ _("Loading…") | tojson }},
+  noArticles: {{ _("No indexed articles.") | tojson }},
+  loadError: {{ _("Loading error.") | tojson }},
+  deleteArticleError: {{ _("Error deleting.") | tojson }},
+  enterEmail: {{ _("Enter an email.") | tojson }},
+  shared: {{ _("Shared.") | tojson }},
+  removeOk: {{ _("Sharing removed.") | tojson }},
+  error: {{ _("Error.") | tojson }},
+  updateError: {{ _("Error updating.") | tojson }},
+  save: {{ _("Save") | tojson }},
+};
+
+document.getElementById("openAddBtn")?.addEventListener("click", () => {
+  document.getElementById("addZone").classList.remove("d-none");
+  document.getElementById("scraperName").focus();
+});
+document.getElementById("cancelAddBtn")?.addEventListener("click", () => {
+  document.getElementById("addZone").classList.add("d-none");
+  clearAlert(document.getElementById("addAlert"));
+});
+
+document.getElementById("addScraperBtn")?.addEventListener("click", async () => {
+  const alertEl = document.getElementById("addAlert");
+  clearAlert(alertEl);
+  const name = document.getElementById("scraperName").value.trim();
+  const url  = document.getElementById("scraperUrl").value.trim();
+  if (!name || !url) { showAlert(alertEl, I18N.nameAndUrlRequired); return; }
+
+  const btn = document.getElementById("addScraperBtn");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>${I18N.adding}`;
+
+  const form = new FormData();
+  form.append("name", name);
+  form.append("url", url);
+  form.append("scrape_since", document.getElementById("scraperSince")?.value || "");
+
+  try {
+    const resp = await fetch("{{ url_for('user_scrapers.add_scraper') }}", {
+      method: "POST", headers: { "X-CSRFToken": csrfToken }, body: form,
+    });
+    const data = await resp.json();
+    if (!resp.ok || !data.success) throw new Error(data.message || I18N.error);
+    showAlert(alertEl, data.message + " " + I18N.reloading, "success");
+    setTimeout(() => location.reload(), 1500);
+  } catch (err) {
+    showAlert(alertEl, err.message || I18N.error);
+    btn.disabled = false;
+    btn.textContent = I18N.add;
+  }
+});
+
+document.querySelectorAll(".delete-btn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    if (!confirm(I18N.confirmDelete)) return;
+    const sid = btn.dataset.scraperId;
+    btn.disabled = true;
+    try {
+      const resp = await fetch("{{ url_for('user_scrapers.delete_scraper') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+        body: JSON.stringify({ scraper_id: parseInt(sid, 10) }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.success) throw new Error(data.message || I18N.error);
+      document.getElementById(`card-${sid}`)?.remove();
+    } catch (err) {
+      alert(err.message || I18N.deleteError);
+      btn.disabled = false;
+    }
+  });
+});
+
+document.querySelectorAll(".refresh-btn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const sid = btn.dataset.scraperId;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    try {
+      const resp = await fetch("{{ url_for('user_scrapers.refresh_scraper') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+        body: JSON.stringify({ scraper_id: parseInt(sid, 10) }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.success) throw new Error(data.message || I18N.error);
+      btn.innerHTML = "✓";
+      setTimeout(() => { btn.innerHTML = "↻"; btn.disabled = false; }, 3000);
+    } catch (err) {
+      alert(err.message || I18N.error);
+      btn.innerHTML = "↻";
+      btn.disabled = false;
+    }
+  });
+});
+
+document.querySelectorAll(".freq-select").forEach(sel => {
+  sel.addEventListener("change", async () => {
+    const sid = parseInt(sel.dataset.scraperId, 10);
+    const freq = sel.value;
+    try {
+      const resp = await fetch("{{ url_for('user_scrapers.update_scraper_frequency') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+        body: JSON.stringify({ scraper_id: sid, frequency: freq }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.success) throw new Error(data.message || I18N.error);
+    } catch (err) {
+      alert(err.message || I18N.updateError);
+    }
+  });
+});
+
+document.querySelectorAll(".articles-toggle-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const sid = btn.dataset.scraperId;
+    const panel = document.getElementById(`articles-panel-${sid}`);
+    const wasHidden = panel.classList.contains("d-none");
+    panel.classList.toggle("d-none");
+    if (wasHidden) loadArticles(parseInt(sid, 10));
+  });
+});
+
+async function loadArticles(scraperId) {
+  const listEl = document.getElementById(`articles-list-${scraperId}`);
+  listEl.innerHTML = `<span class="small text-muted">${I18N.loading}</span>`;
+  try {
+    const resp = await fetch(`{{ url_for('user_scrapers.scraper_articles') }}?scraper_id=${scraperId}`, {
+      headers: { "X-CSRFToken": csrfToken },
+    });
+    const data = await resp.json();
+    if (!data.success || !data.articles.length) {
+      listEl.innerHTML = `<span class="small text-muted">${I18N.noArticles}</span>`;
+      return;
+    }
+    listEl.innerHTML = "";
+    data.articles.forEach(art => {
+      const row = document.createElement("div");
+      row.id = `art-row-${art.id}`;
+      row.className = "d-flex align-items-start gap-2 py-1 border-bottom";
+      row.style.fontSize = ".8rem";
+      row.innerHTML = `
+        <div class="flex-grow-1 min-width-0">
+          <a href="${escHtml(safeUrlJs(art.url))}" target="_blank" rel="noopener"
+             class="text-decoration-none text-dark fw-medium d-block text-truncate"
+             style="max-width:420px;">${escHtml(art.title)}</a>
+          <span class="text-muted">${escHtml(art.published_at || art.indexed_at)} · ${art.chunk_count} chunk${art.chunk_count !== 1 ? 's' : ''}</span>
+          <div class="tag-chips d-flex flex-wrap gap-1 align-items-center mt-1"
+               data-resource-type="article" data-resource-id="${art.id}">
+          </div>
+        </div>
+        <button class="btn btn-link text-danger p-0 flex-shrink-0 art-delete-btn"
+                data-article-id="${art.id}" data-scraper-id="${scraperId}"
+                style="font-size:.75rem;">{{ _("Delete") }}</button>`;
+      listEl.appendChild(row);
+      const tagChips = row.querySelector(".tag-chips");
+      (art.tags || []).forEach(t => {
+        const chip = document.createElement("span");
+        chip.className = "badge rounded-pill bg-primary-subtle text-primary border border-primary tag-chip me-1";
+        chip.dataset.tagId = t.id;
+        chip.style.cssText = "font-size:.7rem;cursor:default;";
+        chip.innerHTML = escHtml(t.name) +
+          ` <button type="button" class="btn-close tag-remove-btn ms-1"
+              data-tag-id="${t.id}" aria-label="{{ _('Remove') }}"
+              style="font-size:.45rem;vertical-align:middle;"></button>`;
+        tagChips.appendChild(chip);
+      });
+      const tagInput = document.createElement("input");
+      tagInput.type = "text";
+      tagInput.className = "tag-input";
+      tagInput.placeholder = "+ tag";
+      tagInput.style.cssText = "width:55px;font-size:.72rem;border:none;border-bottom:1px dashed var(--bs-secondary);background:transparent;color:inherit;padding:0 2px;outline:none;";
+      tagChips.appendChild(tagInput);
+      new TagWidget(tagChips);
+      row.querySelector(".art-delete-btn").addEventListener("click", deleteArticle);
+    });
+  } catch {
+    listEl.innerHTML = `<span class="small text-danger">${I18N.loadError}</span>`;
+  }
+}
+
+async function deleteArticle(e) {
+  const btn = e.currentTarget;
+  const artId = parseInt(btn.dataset.articleId, 10);
+  const scraperId = btn.dataset.scraperId;
+  btn.disabled = true;
+  try {
+    const resp = await fetch("{{ url_for('user_scrapers.delete_scraper_article') }}", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+      body: JSON.stringify({ article_id: artId }),
+    });
+    const data = await resp.json();
+    if (!resp.ok || !data.success) throw new Error(data.message || I18N.error);
+    document.getElementById(`art-row-${artId}`)?.remove();
+    const countEl = document.querySelector(`#card-${scraperId} .article-count-badge`);
+    if (countEl) {
+      const n = parseInt(countEl.textContent) - 1;
+      countEl.textContent = `${n} article${n !== 1 ? 's' : ''}`;
+    }
+  } catch (err) {
+    alert(err.message || I18N.deleteArticleError);
+    btn.disabled = false;
+  }
+}
+
+document.querySelectorAll(".articles-refresh-btn").forEach(btn => {
+  btn.addEventListener("click", () => loadArticles(parseInt(btn.dataset.scraperId, 10)));
+});
+
+document.querySelectorAll(".since-save-btn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const sid = parseInt(btn.dataset.scraperId, 10);
+    const input = document.querySelector(`.since-input[data-scraper-id="${sid}"]`);
+    const since = input?.value || "";
+    btn.disabled = true;
+    try {
+      const resp = await fetch("{{ url_for('user_scrapers.update_scraper_since') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+        body: JSON.stringify({ scraper_id: sid, scrape_since: since }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.success) throw new Error(data.message || I18N.error);
+      btn.textContent = "✓";
+      setTimeout(() => { btn.textContent = I18N.save; btn.disabled = false; }, 2000);
+    } catch (err) {
+      alert(err.message || I18N.error);
+      btn.disabled = false;
+    }
+  });
+});
+
+function clearAlert(el) {
+  if (el) { el.className = "share-alert d-none alert py-1 px-2 mb-2"; el.textContent = ""; }
+}
+function showAlert(el, msg, type = "danger") {
+  if (el) { el.textContent = msg; el.className = `share-alert alert alert-${type} py-1 px-2 mb-2`; }
+}
+// Bug X11 (audit round 3) — escHtml + safeUrlJs viennent de
+// app/static/js/util.js (chargé depuis base.html).
+</script>
+{% include 'user/_tag_widget.html' %}
+{% endblock %}

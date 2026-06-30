@@ -1,0 +1,102 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("Connect kDrive") }} — Myeline{% endblock %}
+{% block content %}
+
+<div class="container my-5 px-3" style="max-width:580px;">
+
+  <div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{{ url_for('user_cloud.cloud_connections') }}" class="btn btn-outline-secondary btn-sm">← {{ _("Back") }}</a>
+    <h2 class="fw-bold mb-0">{{ _("Connect kDrive") }}</h2>
+  </div>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="alert alert-warning rounded-4 d-flex gap-2 align-items-start mb-3">
+    <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1"></i>
+    <div>
+      <strong>{{ _("Paid plan required") }}</strong><br>
+      <span class="small">{{ _("WebDAV access is not available on free kSuite / my kSuite plans. You need a paid kDrive subscription to use this feature.") }}</span>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+
+    {# Step 1: find kDrive ID #}
+    <div class="mb-4">
+      <p class="fw-semibold mb-2">
+        <span class="badge bg-primary rounded-pill me-1">1</span>
+        {{ _("Find your kDrive ID") }}
+      </p>
+      <p class="small text-muted mb-2">
+        {{ _("Open kDrive in a new tab and look at the address bar.") }}
+        <a href="https://ksuite.infomaniak.com/kdrive" target="_blank" rel="noopener" class="ms-1">
+          {{ _("Open kDrive") }} <i class="bi bi-box-arrow-up-right"></i>
+        </a>
+      </p>
+      <div class="rounded-3 px-3 py-2 small font-monospace border" style="word-break:break-all;background:var(--surface-low);color:var(--text,inherit);">
+        ksuite.infomaniak.com/kdrive/app/drive/<strong class="text-primary">123456</strong>/…
+      </div>
+      <div class="form-text mt-1">{{ _("The number highlighted in blue is your kDrive ID.") }}</div>
+    </div>
+
+    {# Step 2: create application password #}
+    <div class="mb-4">
+      <p class="fw-semibold mb-2">
+        <span class="badge bg-primary rounded-pill me-1">2</span>
+        {{ _("Create an application password") }}
+      </p>
+      <p class="small text-muted mb-1">
+        {{ _("In") }}
+        <a href="https://manager.infomaniak.com" target="_blank" rel="noopener">manager.infomaniak.com</a>
+        → {{ _("click your profile picture (top right)") }}
+        → <strong>{{ _("Security") }}</strong>
+        → <strong>{{ _("Application passwords") }}</strong>
+        → {{ _("create a new password.") }}
+      </p>
+      <div class="alert alert-warning small py-2 mb-0 rounded-3">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        {{ _("Use the e-mail address of your Infomaniak account, not a custom domain (e.g. your@infomaniak.com or the address you use to log in to Manager).") }}
+      </div>
+    </div>
+
+    <hr class="my-3">
+
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="mb-3">
+        <label for="email" class="form-label fw-semibold">{{ _("Infomaniak account e-mail") }}</label>
+        <input type="email" id="email" name="email" class="form-control"
+               placeholder="you@example.com" required
+               value="{{ email or '' }}"
+               autocomplete="username">
+      </div>
+
+      <div class="mb-3">
+        <label for="kdrive_id" class="form-label fw-semibold">{{ _("kDrive ID") }}</label>
+        <input type="text" id="kdrive_id" name="kdrive_id" class="form-control font-monospace"
+               placeholder="123456" required
+               value="{{ kdrive_id or '' }}"
+               inputmode="numeric" pattern="\d+">
+      </div>
+
+      <div class="mb-4">
+        <label for="app_password" class="form-label fw-semibold">{{ _("Application password") }}</label>
+        <input type="password" id="app_password" name="app_password" class="form-control"
+               placeholder="••••••••••••••••" required
+               autocomplete="new-password">
+        <div class="form-text">{{ _("Spaces in the password are stripped automatically.") }}</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">{{ _("Connect") }}</button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

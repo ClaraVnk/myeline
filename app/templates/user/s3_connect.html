@@ -1,0 +1,79 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("Connect S3 storage") }} — Myeline{% endblock %}
+{% block content %}
+
+<div class="container my-5 px-3" style="max-width:560px;">
+
+  <div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{{ url_for('user_cloud.cloud_connections') }}" class="btn btn-outline-secondary btn-sm">← {{ _("Back") }}</a>
+    <h2 class="fw-bold mb-0">{{ _("Connect S3 storage") }}</h2>
+  </div>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+    <p class="text-muted mb-4">
+      {{ _("Compatible with Amazon S3, Scaleway, OVH, Infomaniak kS3, Cloudflare R2, MinIO, and any S3-compatible storage.") }}
+      {{ _("The credentials are stored encrypted and only used to read your documents.") }}
+    </p>
+
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="mb-3">
+        <label for="access_key" class="form-label fw-semibold">{{ _("Access Key ID") }}</label>
+        <input type="text" id="access_key" name="access_key" class="form-control font-monospace"
+               placeholder="AKIAIOSFODNN7EXAMPLE" required
+               autocomplete="off" value="{{ form_data.access_key if form_data else '' }}">
+      </div>
+
+      <div class="mb-3">
+        <label for="secret_key" class="form-label fw-semibold">{{ _("Secret Access Key") }}</label>
+        <input type="password" id="secret_key" name="secret_key" class="form-control"
+               placeholder="••••••••••••••••••••••••••••" required
+               autocomplete="new-password">
+      </div>
+
+      <div class="mb-3">
+        <label for="endpoint_url" class="form-label fw-semibold">{{ _("Endpoint URL") }}</label>
+        <input type="url" id="endpoint_url" name="endpoint_url" class="form-control"
+               placeholder="https://s3.amazonaws.com"
+               autocomplete="off" value="{{ form_data.endpoint_url if form_data else '' }}">
+        <div class="form-text">{{ _("Leave empty for Amazon S3, or enter the endpoint for your S3-compatible provider.") }}</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="bucket_name" class="form-label fw-semibold">{{ _("Bucket name") }}</label>
+        <input type="text" id="bucket_name" name="bucket_name" class="form-control"
+               placeholder="my-documents" required
+               autocomplete="off" value="{{ form_data.bucket_name if form_data else '' }}">
+      </div>
+
+      <div class="mb-4">
+        <label for="prefix" class="form-label fw-semibold">{{ _("Prefix / folder") }} <span class="text-muted fw-normal">({{ _("optional") }})</span></label>
+        <input type="text" id="prefix" name="prefix" class="form-control"
+               placeholder="documents/"
+               autocomplete="off" value="{{ form_data.prefix if form_data else '' }}">
+        <div class="form-text">{{ _("Only files under this prefix will be indexed. Leave empty to index the whole bucket.") }}</div>
+      </div>
+
+      <div class="mb-4">
+        <label for="display_name" class="form-label fw-semibold">{{ _("Display name") }} <span class="text-muted fw-normal">({{ _("optional") }})</span></label>
+        <input type="text" id="display_name" name="display_name" class="form-control"
+               placeholder="S3"
+               autocomplete="off" value="{{ form_data.display_name if form_data else '' }}">
+        <div class="form-text">{{ _("Friendly name shown in your cloud services list.") }}</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">{{ _("Connect") }}</button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

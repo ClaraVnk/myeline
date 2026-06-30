@@ -1,0 +1,26 @@
+{% extends "base/base.html" %}
+{% block title %}{{ _("Account created") }} — Myeline{% endblock %}
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center flex-grow-1 py-5" style="min-height:calc(100vh - 200px);">
+  <div class="liquid-glass p-4 p-md-5 text-center" style="max-width:540px;width:100%;">
+
+    <p class="display-4 mb-3">🎉</p>
+    <h2 class="fw-bold mb-3">{{ _("Congratulations, your account has been created!") }}</h2>
+
+    <p class="mb-2" style="color:var(--text-secondary);">
+      {{ _("Please check your inbox to confirm your account.") }}
+    </p>
+    <div class="alert alert-info small mb-4" role="alert">
+      📩 {{ _("Don't see the email? Check your spam / junk folder — and mark it as “not spam” so future messages arrive in your inbox.") }}
+    </div>
+
+    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg w-100 mb-2">
+      {{ _("Go to login") }}
+    </a>
+    <a href="{{ url_for('auth.resend_confirmation') }}" class="text-decoration-none small text-muted">
+      {{ _("Didn't receive the email? Resend it") }}
+    </a>
+
+  </div>
+</div>
+{% endblock %}

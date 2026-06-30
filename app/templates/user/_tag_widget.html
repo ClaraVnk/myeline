@@ -1,0 +1,100 @@
+{# Tag chip widget — include once per page that needs inline tag editing.
+   Requires: csrfToken (string), escHtml (function) already defined. #}
+<script nonce="{{ csp_nonce() }}">
+(function () {
+  const TAG_BASE = "{{ url_for('user_tags.autocomplete') | replace('/autocomplete', '') }}";
+
+  function buildChip(tag, widget) {
+    const chip = document.createElement("span");
+    chip.className = "badge rounded-pill bg-primary-subtle text-primary border border-primary tag-chip me-1";
+    chip.dataset.tagId = tag.id;
+    chip.style.cssText = "font-size:.7rem;cursor:default;";
+    chip.innerHTML =
+      escHtml(tag.name) +
+      ` <button type="button" class="btn-close tag-remove-btn ms-1"
+          data-tag-id="${tag.id}" aria-label="Retirer"
+          style="font-size:.45rem;vertical-align:middle;"></button>`;
+    chip.querySelector(".tag-remove-btn").addEventListener("click", () =>
+      widget._removeTag(tag.id, chip)
+    );
+    return chip;
+  }
+
+  class TagWidget {
+    constructor(container) {
+      this.container = container;
+      this.rt = container.dataset.resourceType;
+      this.rid = container.dataset.resourceId;
+      this.input = container.querySelector(".tag-input");
+      this._dlId = `tl-${this.rt}-${this.rid}`;
+      this._setup();
+    }
+
+    _setup() {
+      const dl = document.createElement("datalist");
+      dl.id = this._dlId;
+      document.body.appendChild(dl);
+      this.input.setAttribute("list", this._dlId);
+      this.input.setAttribute("autocomplete", "off");
+
+      this.input.addEventListener("focus", () => this._suggest(""));
+      this.input.addEventListener("input", () => this._suggest(this.input.value));
+      this.input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === ",") {
+          e.preventDefault();
+          this._add(this.input.value.replace(",", "").trim());
+        } else if (e.key === "Escape") {
+          this.input.value = "";
+          this.input.blur();
+        }
+      });
+      this.input.addEventListener("blur", () => {
+        const v = this.input.value.trim();
+        if (v) this._add(v);
+      });
+
+      this.container.querySelectorAll(".tag-remove-btn").forEach((btn) =>
+        btn.addEventListener("click", () =>
+          this._removeTag(btn.dataset.tagId, btn.closest(".tag-chip"))
+        )
+      );
+    }
+
+    async _suggest(q) {
+      try {
+        const r = await fetch(`${TAG_BASE}/autocomplete?q=${encodeURIComponent(q)}`, {
+          headers: { "X-CSRFToken": csrfToken },
+        });
+        const tags = await r.json();
+        const dl = document.getElementById(this._dlId);
+        dl.innerHTML = tags.map((t) => `<option value="${escHtml(t.name)}"></option>`).join("");
+      } catch {}
+    }
+
+    async _add(name) {
+      if (!name) return;
+      this.input.value = "";
+      const r = await fetch(`${TAG_BASE}/${this.rt}/${this.rid}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+        body: JSON.stringify({ name }),
+      });
+      const tag = await r.json();
+      if (!r.ok) return;
+      if (!this.container.querySelector(`[data-tag-id="${tag.id}"]`)) {
+        this.container.insertBefore(buildChip(tag, this), this.input);
+      }
+    }
+
+    async _removeTag(tagId, chipEl) {
+      const r = await fetch(`${TAG_BASE}/${this.rt}/${this.rid}/${tagId}`, {
+        method: "DELETE",
+        headers: { "X-CSRFToken": csrfToken },
+      });
+      if (r.ok) chipEl?.remove();
+    }
+  }
+
+  window.TagWidget = TagWidget;
+})();
+</script>

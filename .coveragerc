@@ -1,0 +1,22 @@
+[run]
+source = app
+# Modules excluded from coverage measurement either because they orchestrate
+# real infrastructure (Podman REST, supercronic, Gunicorn worker bootstrap,
+# WSGI entrypoint) and are exercised by integration tests at deploy time
+# rather than by unit tests, or because they are auto-generated.
+omit =
+    app/cron/*
+    app/services/provisioning_service.py
+    app/gunicorn_config.py
+    app/wsgi.py
+    */migrations/*
+    */tests/*
+
+[report]
+omit =
+    app/cron/*
+    app/services/provisioning_service.py
+    app/gunicorn_config.py
+    app/wsgi.py
+    */migrations/*
+    */tests/*

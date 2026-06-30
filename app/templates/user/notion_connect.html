@@ -1,0 +1,68 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("Connect Notion") }} — Myeline{% endblock %}
+{% block content %}
+
+<div class="container my-5 px-3" style="max-width:580px;">
+
+  <div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{{ url_for('user_cloud.cloud_connections') }}" class="btn btn-outline-secondary btn-sm">← {{ _("Back") }}</a>
+    <img src="{{ url_for('static', filename='img/providers/notion.svg') }}" alt="Notion" style="height:2rem;">
+    <h2 class="fw-bold mb-0">{{ _("Connect Notion") }}</h2>
+  </div>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+
+    <div class="mb-4">
+      <p class="fw-semibold mb-2">
+        <span class="badge bg-primary rounded-pill me-1">1</span>
+        {{ _("Create a Notion Integration") }}
+      </p>
+      <p class="small text-muted mb-2">
+        {{ _("Go to") }}
+        <a href="https://www.notion.so/my-integrations" target="_blank" rel="noopener">
+          notion.so/my-integrations <i class="bi bi-box-arrow-up-right"></i>
+        </a>
+        {{ _("and create a new internal integration.") }}
+        {{ _("Copy the Integration Token (starts with") }} <code>ntn_</code> {{ _("or") }} <code>secret_</code>).
+      </p>
+    </div>
+
+    <div class="mb-4">
+      <p class="fw-semibold mb-2">
+        <span class="badge bg-primary rounded-pill me-1">2</span>
+        {{ _("Share pages with the integration") }}
+      </p>
+      <p class="small text-muted mb-1">
+        {{ _("In each Notion page you want to index, click") }} <strong>⋯</strong> →
+        <strong>{{ _("Connections") }}</strong> → {{ _("select your integration.") }}
+        {{ _("Only pages explicitly shared with the integration will be synced.") }}
+      </p>
+    </div>
+
+    <hr class="my-3">
+
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="mb-4">
+        <label for="token" class="form-label fw-semibold">{{ _("Integration Token") }}</label>
+        <input type="password" id="token" name="token" class="form-control font-monospace"
+               placeholder="ntn_…" required autocomplete="off">
+        <div class="form-text">{{ _("The token is encrypted before being stored.") }}</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">{{ _("Connect") }}</button>
+    </form>
+
+  </div>
+
+</div>
+{% endblock %}

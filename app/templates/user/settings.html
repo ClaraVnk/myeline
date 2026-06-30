@@ -1,0 +1,226 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("Account settings") }} — Myeline{% endblock %}
+
+{% block content %}
+<div class="liquid-glass p-4 p-md-5 my-5 mx-auto" style="max-width: 600px;">
+  <div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+
+      <form method="POST" action="{{ url_for('user.account_settings') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="row g-2 mb-3">
+          <div class="col">
+            <label for="firstname" class="form-label fw-semibold">{{ _("First name") }}</label>
+            <input type="text" class="form-control form-control-sm rounded" id="firstname" name="firstname" value="{{ current_user.firstname or '' }}">
+          </div>
+          <div class="col">
+            <label for="lastname" class="form-label fw-semibold">{{ _("Last name") }}</label>
+            <input type="text" class="form-control form-control-sm rounded" id="lastname" name="lastname" value="{{ current_user.lastname or '' }}">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="email" class="form-label fw-semibold">{{ _("Email address") }}</label>
+          <input type="email" class="form-control form-control-sm rounded" id="email" name="email" value="{{ current_user.email }}" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label fw-semibold">
+            {{ _("New password") }}
+            <span class="fw-normal text-muted">({{ _("leave blank to keep unchanged") }})</span>
+          </label>
+          <input type="password"
+                 class="form-control form-control-sm rounded"
+                 id="password"
+                 name="password"
+                 minlength="8"
+                 pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+\[\]{};:'\,.<>/?\\|]).{8,}"
+                 title="{{ _('At least 8 characters, one uppercase, one lowercase, one number and one special character.') }}">
+          <div class="form-text text-muted">
+            {{ _("At least 8 characters, one uppercase, one lowercase, one number and one special character.") }}
+          </div>
+        </div>
+
+        {% if not sovereign_mode %}
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="digest_summarize" name="digest_summarize"
+                 value="1" {% if current_user.digest_summarize %}checked{% endif %}>
+          <label class="form-check-label small" for="digest_summarize">
+            {{ _("Summarise digest articles with AI") }}
+            <span class="text-muted d-block">
+              {{ _("Adds a short AI summary per article in your digest email. Pro uses the included Mistral AI; if you set your own API key below, that key is used instead. Free accounts need their own key.") }}
+            </span>
+          </label>
+        </div>
+        {% endif %}
+
+        <div class="d-grid gap-2 mb-3">
+          <button type="submit" class="btn btn-primary rounded w-100 px-4 shadow">💾 {{ _("Save") }}</button>
+        </div>
+      </form>
+
+
+      {% if not sovereign_mode %}
+      <div class="mb-4">
+        <h5 class="mb-3">🤖 {{ _("AI provider (your own key)") }}</h5>
+        <p class="small text-muted mb-3">
+          {{ _("An AI key is required: Myeline uses your own LLM API key for AI answers and summaries. Without a key, no synthesis is generated. Your key is encrypted and never shared. Bring a key from Anthropic, OpenAI, Google or Mistral.") }}
+        </p>
+        <p class="small mb-3" style="color:var(--accent,#007aff);">
+          💡 {% if get_locale() == 'en' %}A <strong>Mistral</strong>, <strong>OpenAI</strong> or <strong>Gemini</strong> key handles <strong>both</strong> indexing and answers — one key, everything works. (An Anthropic Claude key answers only, as Anthropic has no embedding API — pick one of the others to also index your documents.){% else %}Une clé <strong>Mistral</strong>, <strong>OpenAI</strong> ou <strong>Gemini</strong> gère <strong>à la fois</strong> l'indexation et les réponses — une seule clé, tout fonctionne. (Une clé Anthropic Claude ne fait que répondre, Anthropic n'ayant pas d'API d'embedding — choisissez plutôt l'une des autres pour aussi indexer vos documents.){% endif %}
+        </p>
+
+        <details class="mb-3 small">
+          <summary class="fw-semibold" style="cursor:pointer;color:var(--accent,#007aff);">
+            💡 {% if get_locale() == 'en' %}How to get a free API key in 2 minutes{% else %}Obtenir une clé API gratuite en 2 minutes{% endif %}
+          </summary>
+          <div class="mt-2 ps-1" style="color:var(--text-secondary);line-height:1.6;">
+            {% if get_locale() == 'en' %}
+            <p class="mb-2"><strong>Recommended — free, no credit card:</strong></p>
+            <ul class="mb-2 ps-3">
+              <li><strong>Google Gemini</strong> — open
+                <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>,
+                sign in with a Google account, click <em>Create API key</em>, copy it, then paste it below and pick
+                <em>Google Gemini</em>. Done.</li>
+              <li><strong>Mistral</strong> — create a free account at
+                <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a>,
+                generate a key, paste it below and pick <em>Mistral</em>.</li>
+            </ul>
+            <p class="mb-1"><strong>Paid (need a billing account):</strong>
+              <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">OpenAI</a> ·
+              <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Anthropic Claude</a>.</p>
+            <p class="mb-0 text-muted">Your key is encrypted and never shared. You can change or remove it anytime.</p>
+            {% else %}
+            <p class="mb-2"><strong>Recommandé — gratuit, sans carte bancaire :</strong></p>
+            <ul class="mb-2 ps-3">
+              <li><strong>Google Gemini</strong> — ouvrez
+                <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>,
+                connectez-vous avec un compte Google, cliquez sur <em>Create API key</em>, copiez-la, puis collez-la
+                ci-dessous et choisissez <em>Google Gemini</em>. C'est tout.</li>
+              <li><strong>Mistral</strong> — créez un compte gratuit sur
+                <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a>,
+                générez une clé, collez-la ci-dessous et choisissez <em>Mistral</em>.</li>
+            </ul>
+            <p class="mb-1"><strong>Payant (compte de facturation requis) :</strong>
+              <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">OpenAI</a> ·
+              <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Anthropic Claude</a>.</p>
+            <p class="mb-0 text-muted">Votre clé est chiffrée et jamais partagée. Vous pouvez la changer ou la retirer à tout moment.</p>
+            {% endif %}
+          </div>
+        </details>
+
+        {% if current_user.has_ai_key %}
+          <div class="alert alert-success py-2 small mb-3">
+            ✅ {{ _("Active") }} —
+            {{ ai_provider_labels.get(current_user.ai_provider, current_user.ai_provider) }}
+            {% if current_user.ai_model %}<span class="text-muted">({{ current_user.ai_model }})</span>{% endif %}
+          </div>
+        {% else %}
+          <div class="alert alert-warning py-2 small mb-3">
+            ⚠️ {{ _("No API key configured. AI answers and summaries are disabled until you add one.") }}
+          </div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('user.set_ai_provider') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mb-2">
+            <label class="form-label small fw-semibold mb-1">{{ _("Provider") }}</label>
+            <select name="provider" class="form-select form-select-sm rounded" required>
+              {% for p in ai_providers %}
+              <option value="{{ p }}" {% if current_user.ai_provider == p %}selected{% endif %}>
+                {{ ai_provider_labels.get(p, p) }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold mb-1">{{ _("API key") }}</label>
+            <input type="password" name="api_key" class="form-control form-control-sm rounded"
+                   autocomplete="off" placeholder="sk-…" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold mb-1">{{ _("Model (optional)") }}</label>
+            <input type="text" name="model" class="form-control form-control-sm rounded"
+                   value="{{ current_user.ai_model or '' }}"
+                   placeholder="{{ ai_provider_models.get(current_user.ai_provider or 'claude', '') }}">
+            <div class="form-text small">{{ _("Leave empty to use the provider's default model.") }}</div>
+          </div>
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-outline-primary rounded px-4 shadow">
+              💾 {{ _("Save my API key") }}
+            </button>
+          </div>
+        </form>
+
+        {% if current_user.has_ai_key %}
+        <form method="POST" action="{{ url_for('user.disable_ai_provider') }}" class="mt-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-outline-danger btn-sm rounded px-4">
+              🗑️ {{ _("Remove my API key") }}
+            </button>
+          </div>
+        </form>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <div class="mb-4">
+        <h5 class="mb-3">🔐 {{ _("Two-factor authentication") }}</h5>
+        {% if current_user.has_2fa %}
+          <div class="alert alert-success py-2 small mb-3">
+            ✅ {{ _("Active") }} —
+            {% if current_user.twofa_method == "totp" %}{{ _("Authenticator app") }}
+            {% else %}{{ _("Email OTP") }}{% endif %}
+          </div>
+        {% else %}
+          <div class="alert alert-warning py-2 small mb-3">
+            ⚠️ {{ _("Not configured. Enable 2FA to secure your account.") }}
+          </div>
+        {% endif %}
+        <div class="d-grid gap-2">
+          <a href="{{ url_for('user_2fa.setup_2fa') }}" class="btn btn-outline-primary rounded px-4 shadow">
+            🔐 {{ _("Manage two-factor authentication") }}
+          </a>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <h5 class="mb-3">📊 {{ _("My personal data (GDPR)") }}</h5>
+        <p class="small text-muted mb-3">
+          {{ _("Under GDPR articles 15 and 20, you have the right to access and retrieve your personal data in a structured format.") }}
+        </p>
+        <div class="d-grid gap-2 mb-3">
+          <a href="{{ url_for('user_tools.export_my_data') }}" class="btn btn-outline-info w-100 rounded px-4 shadow">
+            📥 {{ _("Download my data (JSON)") }}
+          </a>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        {# Bug X6 — js-confirm-form au lieu d'onsubmit inline. #}
+        <form method="POST" action="{{ url_for('user_tools.delete_account') }}"
+              class="js-confirm-form"
+              data-confirm="{{ _('Are you sure you want to permanently delete your account? This action is irreversible.') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="cancel_subscription" value="yes">
+          {# Bug L11 — exiger le mot de passe courant : une session compromise
+             ne doit pas suffire à supprimer le compte. #}
+          <div class="mb-2">
+            <label for="delete-current-password" class="form-label small text-muted">
+              {{ _("Confirm with your current password:") }}
+            </label>
+            <input id="delete-current-password" type="password" name="current_password"
+                   class="form-control" autocomplete="current-password" required>
+          </div>
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-outline-danger w-100 rounded px-4 shadow">🗑️ {{ _("Delete my account") }}</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

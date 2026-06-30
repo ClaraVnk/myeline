@@ -1,0 +1,740 @@
+{% extends 'base/base.html' %}
+
+{% block head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{# A4-L2 (debt) — Chart.js self-hosted under /static/vendor/chart/. #}
+<script src="{{ url_for('static', filename='vendor/chart/chart.umd.min.js') }}"></script>
+<style nonce="{{ csp_nonce() }}">
+  /* ── Stat cards ── */
+  .kpi-card { border-radius: 1rem; }
+  .kpi-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); font-weight: 600; }
+  .kpi-value { font-size: 2rem; font-weight: 700; line-height: 1.1; color: var(--text); }
+  .kpi-sub   { font-size: .78rem; color: var(--text-secondary); margin-top: .2rem; }
+
+  /* ── Gauge bars ── */
+  .gauge-wrap { position: relative; height: 6px; background: var(--border-subtle); border-radius: 3px; overflow: hidden; margin-top: .4rem; }
+  .gauge-fill  { height: 100%; border-radius: 3px; transition: width .6s ease; }
+
+  /* ── Row items ── */
+  .info-row { display: flex; align-items: center; justify-content: space-between; padding: .55rem 0;
+              border-bottom: 1px solid var(--border-subtle); }
+  .info-row:last-child { border-bottom: none; }
+
+  /* ── Section title ── */
+  .sec-title { font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); font-weight: 600; margin-bottom: .9rem; }
+
+  /* ── Chart wrap ── */
+  .chart-wrap { position: relative; height: 150px; }
+
+  /* ── Status dot ── */
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .dot-green  { background: #34c759; box-shadow: 0 0 6px #34c75966; }
+  .dot-red    { background: #ff3b30; box-shadow: 0 0 6px #ff3b3066; }
+  .dot-yellow { background: #ff9500; box-shadow: 0 0 6px #ff950066; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="py-2">
+
+  {# License banner is now rendered globally from base/base.html for admins.
+     No need to include it here — keeping it would duplicate. #}
+
+  <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+    <h1 class="fw-semibold mb-0" style="font-size:1.2rem;">📊 Dashboard</h1>
+    <a href="{{ url_for('admin.broadcast_email') }}" class="btn btn-sm btn-outline-primary ms-auto">📣 Email abonnés</a>
+    <a href="{{ url_for('admin.cloud_providers') }}" class="btn btn-sm btn-outline-secondary">☁️ Connecteurs cloud</a>
+    <a href="{{ url_for('admin.audit_log') }}" class="btn btn-sm btn-outline-secondary">📋 Audit log</a>
+    <span class="badge bg-secondary" id="last-refresh" style="font-size:.65rem;"></span>
+  </div>
+
+  {# ── Alertes ────────────────────────────────────────────────────────────── #}
+  <div id="alert-banners" class="mb-2"></div>
+
+  {# ── Ligne 1 : KPI métier ─────────────────────────────────────────────── #}
+  <div class="row g-2 mb-2">
+    <div class="col-6 col-md-3">
+      <div class="liquid-glass p-3 kpi-card h-100">
+        <div class="kpi-label">Abonnés actifs</div>
+        <div class="kpi-value" id="kpi-total">—</div>
+        <div class="kpi-sub" id="kpi-plans-detail"></div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="liquid-glass p-3 kpi-card h-100">
+        <div class="kpi-label">Vecteurs RAG</div>
+        <div class="kpi-value" id="kpi-vectors">—</div>
+        <div class="kpi-sub" id="kpi-rag-model"></div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Ligne 2 : Métriques système (live) ──────────────────────────────── #}
+  <div class="row g-2 mb-2" style="height:80px;">
+    <div class="col-6 col-md-3">
+      <div class="liquid-glass p-2 kpi-card h-100 d-flex align-items-center gap-2 overflow-hidden">
+        <div style="height:52px;width:52px;flex-shrink:0;"><canvas id="donut-cpu"></canvas></div>
+        <div>
+          <div class="kpi-label">CPU</div>
+          <div style="font-size:1.25rem;font-weight:700;line-height:1.1;color:var(--text);" id="sys-cpu">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="liquid-glass p-2 kpi-card h-100 d-flex align-items-center gap-2 overflow-hidden">
+        <div style="height:52px;width:52px;flex-shrink:0;"><canvas id="donut-ram"></canvas></div>
+        <div>
+          <div class="kpi-label">RAM</div>
+          <div style="font-size:1.25rem;font-weight:700;line-height:1.1;color:var(--text);" id="sys-ram">—</div>
+          <div class="kpi-sub" id="sys-ram-detail" style="font-size:.65rem;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="liquid-glass p-2 kpi-card h-100 d-flex align-items-center gap-2 overflow-hidden">
+        <div style="height:52px;width:52px;flex-shrink:0;"><canvas id="donut-disk"></canvas></div>
+        <div>
+          <div class="kpi-label">Disque</div>
+          <div style="font-size:1.25rem;font-weight:700;line-height:1.1;color:var(--text);" id="sys-disk">—</div>
+          <div class="kpi-sub" id="sys-disk-detail" style="font-size:.65rem;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Ligne 3 : Graphiques ─────────────────────────────────────────────── #}
+  <div class="row g-2 mb-2">
+    <div class="col-md-5">
+      <div class="liquid-glass p-3 h-100">
+        <div class="sec-title">Nouveaux abonnés / mois (12 mois glissants)</div>
+        <div class="chart-wrap"><canvas id="chart-growth"></canvas></div>
+      </div>
+    </div>
+    <div class="col-md-7">
+      <div class="liquid-glass p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="sec-title mb-0">CPU &amp; RAM
+            <span style="color:#007aff;font-size:.8em;margin-left:.4em;">● CPU</span>
+            <span style="color:#34c759;font-size:.8em;margin-left:.3em;">● RAM</span>
+          </span>
+          <span id="last-refresh-mini" style="font-size:.62rem;color:var(--text-muted);"></span>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-resources"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Ligne 4 : Panneaux détail ────────────────────────────────────────── #}
+  <div class="row g-2">
+
+    {# RAG / AI #}
+    <div class="col-md-6">
+      <div class="liquid-glass p-3 h-100">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="sec-title mb-0">Modèles IA</div>
+          <div class="d-flex align-items-center gap-2" id="llm-toggle-wrap" style="display:none!important;">
+            <span class="small text-muted">Ollama</span>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" role="switch"
+                     id="llm-toggle" style="cursor:pointer;"
+                     title="Basculer entre Mistral API et Ollama local">
+            </div>
+            <span class="small text-muted">Mistral</span>
+          </div>
+        </div>
+        <div id="rag-body"><div class="text-muted small">Chargement…</div></div>
+        <div id="local-llm-picker-wrap" class="mt-3 pt-3 border-top d-none">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+            <label for="local-llm-select" class="small text-muted mb-0">
+              Modèle Ollama de synthèse
+              <span id="local-llm-sovereign-badge" class="badge bg-success-subtle text-success border ms-1 d-none" style="font-size:.6rem;">🔒 souverain</span>
+            </label>
+            <span class="small text-muted" id="local-llm-active-hint" style="font-size:.7rem;"></span>
+          </div>
+          <div class="d-flex gap-2">
+            <select id="local-llm-select" class="form-select form-select-sm">
+              <option value="">— défaut .env —</option>
+            </select>
+            <button id="local-llm-save-btn" class="btn btn-sm btn-primary" disabled>Activer</button>
+          </div>
+          <div id="local-llm-error" class="text-danger small mt-2 d-none"></div>
+        </div>
+
+        {# Embedder picker — same Sovereign-first audience as the LLM picker. #}
+        <div id="local-embed-picker-wrap" class="mt-3 pt-3 border-top d-none">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+            <label for="local-embed-select" class="small text-muted mb-0">
+              Modèle Ollama d'embedding
+              <span class="badge bg-warning-subtle text-warning border ms-1" style="font-size:.6rem;">⚠ réindex requis</span>
+            </label>
+            <span class="small text-muted" id="local-embed-active-hint" style="font-size:.7rem;"></span>
+          </div>
+          <div class="d-flex gap-2">
+            <select id="local-embed-select" class="form-select form-select-sm">
+              <option value="">— défaut .env —</option>
+            </select>
+            <button id="local-embed-save-btn" class="btn btn-sm btn-primary" disabled>Activer + réindexer</button>
+          </div>
+          <div id="local-embed-status" class="small mt-2 text-muted" style="font-size:.7rem;">
+            Le changement déclenche une réindexation en tâche de fond. La recherche reste accessible mais la qualité est dégradée le temps que tous les chunks soient ré-embeddés.
+          </div>
+          <div id="local-embed-reindex-badge" class="alert alert-warning small mt-2 mb-0 d-none p-2" style="font-size:.75rem;">
+            ⏳ Réindexation en cours — modifications désactivées.
+          </div>
+          <div id="local-embed-error" class="text-danger small mt-2 d-none"></div>
+        </div>
+      </div>
+    </div>
+
+    {# Santé système #}
+    <div class="col-md-6">
+      <div class="liquid-glass p-3 h-100">
+        <div class="sec-title">État du système</div>
+        {% if health_data %}
+        <div class="d-flex flex-column">
+          {% set checks = [
+            ('🗄️', 'Base de données', health_data.checks.database.status, health_data.checks.database.message),
+            ('🔴', 'Redis', health_data.checks.redis.status, health_data.checks.redis.message),
+            ('📦', 'Container', health_data.checks.container.status, health_data.checks.container.message),
+          ] %}
+          {% for icon, label, status, msg in checks %}
+          <div class="info-row">
+            <span class="small">{{ icon }} {{ label }}</span>
+            <div class="text-end">
+              <span class="badge bg-{{ 'success' if status == 'healthy' else ('warning' if status in ['unknown','running'] else 'danger') }}"
+                    style="font-size:.7rem;">{{ status }}</span>
+              <div style="font-size:.67rem;color:var(--text-muted);">{{ msg }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted small">Système inaccessible.</p>
+        {% endif %}
+        <div class="mt-3">
+          <a href="{{ url_for('health.health_check') }}" target="_blank"
+             class="btn btn-sm btn-outline-secondary">JSON /health</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {# ── RAG Feedback stats ───────────────────────────────────────────────── #}
+  {% if feedback_stats %}
+  <div class="mt-3">
+    <div class="sec-title mb-2">Feedback RAG <span class="text-muted small fw-normal">(30 derniers jours)</span></div>
+    <div class="row g-2 mb-3">
+      <div class="col-6 col-md-3">
+        <div class="liquid-glass p-3 kpi-card h-100">
+          <div class="kpi-label">Total retours</div>
+          <div class="kpi-value">{{ feedback_stats.total }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="liquid-glass p-3 kpi-card h-100">
+          <div class="kpi-label">👍 Positifs</div>
+          <div class="kpi-value" style="color:#34c759;">{{ feedback_stats.up }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="liquid-glass p-3 kpi-card h-100">
+          <div class="kpi-label">👎 Négatifs</div>
+          <div class="kpi-value" style="color:#ff3b30;">{{ feedback_stats.down }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="liquid-glass p-3 kpi-card h-100">
+          <div class="kpi-label">Satisfaction</div>
+          <div class="kpi-value">
+            {% if feedback_stats.satisfaction is not none %}{{ feedback_stats.satisfaction }}%{% else %}—{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if feedback_stats.recent %}
+    <div class="liquid-glass p-3 rounded-3">
+      <div class="sec-title mb-2">Derniers retours</div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0" style="font-size:.8rem;">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Utilisateur</th>
+              <th>Requête</th>
+              <th>Note</th>
+              <th>Commentaire</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for fb in feedback_stats.recent %}
+            <tr>
+              <td class="text-muted">{{ fb.created_at.strftime('%d/%m %H:%M') }}</td>
+              <td class="text-muted">{{ fb.user.email if fb.user else '—' }}</td>
+              <td class="text-truncate" style="max-width:220px;" title="{{ fb.query }}">{{ fb.query | truncate(60) }}</td>
+              <td>
+                {% if fb.rating == 'thumbs_up' %}<span class="text-success fw-bold">👍</span>
+                {% else %}<span class="text-danger fw-bold">👎</span>{% endif %}
+              </td>
+              <td class="text-muted fst-italic">{{ fb.comment | truncate(50) if fb.comment else '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script nonce="{{ csp_nonce() }}">
+(async () => {
+  const accent  = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#007aff";
+  const textMut = getComputedStyle(document.documentElement).getPropertyValue("--text-muted").trim() || "#888";
+  Chart.defaults.font.family = "inherit";
+  Chart.defaults.color = textMut;
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  function gaugeColor(pct) {
+    if (pct < 60) return "#34c759";
+    if (pct < 85) return "#ff9500";
+    return "#ff3b30";
+  }
+
+  function fmt(n) { return n !== undefined ? n.toLocaleString("fr-FR") : "—"; }
+
+  // ── Mini donuts système ───────────────────────────────────────────────────
+  const miniDonutOpts = (color) => ({
+    type: "doughnut",
+    data: { datasets: [{ data: [0, 100], backgroundColor: [color, "rgba(128,128,128,.12)"], borderWidth: 0 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: "72%",
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      animation: { duration: 500 },
+    },
+  });
+
+  const donutCpu  = new Chart(document.getElementById("donut-cpu").getContext("2d"),  miniDonutOpts("#007aff"));
+  const donutRam  = new Chart(document.getElementById("donut-ram").getContext("2d"),  miniDonutOpts("#34c759"));
+  const donutDisk = new Chart(document.getElementById("donut-disk").getContext("2d"), miniDonutOpts("#ff9500"));
+
+  function updateDonut(chart, pct) {
+    const c = gaugeColor(pct);
+    chart.data.datasets[0].data = [pct, 100 - pct];
+    chart.data.datasets[0].backgroundColor[0] = c;
+    chart.update();
+  }
+
+  // ── Graphique temps réel CPU + RAM ─────────────────────────────────────
+  const _MAX_POINTS = 20;  // ~5 min à 15s/poll
+  const _resLabels  = [];
+  const _cpuData    = [];
+  const _ramData    = [];
+
+  const resourceChart = new Chart(document.getElementById("chart-resources").getContext("2d"), {
+    type: "line",
+    data: {
+      labels: _resLabels,
+      datasets: [
+        {
+          label: "CPU %",
+          data: _cpuData,
+          borderColor: "#007aff",
+          backgroundColor: "rgba(0,122,255,.12)",
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: true,
+          tension: 0.3,
+        },
+        {
+          label: "RAM %",
+          data: _ramData,
+          borderColor: "#34c759",
+          backgroundColor: "rgba(52,199,89,.10)",
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: true,
+          tension: 0.3,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 300 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: "index",
+          intersect: false,
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} %` },
+        },
+      },
+      scales: {
+        x: {
+          display: true,
+          ticks: {
+            color: "rgba(255,255,255,.35)",
+            font: { size: 9 },
+            maxTicksLimit: 6,
+            maxRotation: 0,
+          },
+          grid: { display: false },
+          border: { display: false },
+        },
+        y: {
+          min: 0, max: 100,
+          ticks: { stepSize: 25, callback: v => v + "%" },
+          grid: { color: "rgba(255,255,255,.06)" },
+        },
+      },
+    },
+  });
+
+  function _pushResourcePoint(cpu, ram) {
+    const t = new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    if (_resLabels.length >= _MAX_POINTS) {
+      _resLabels.shift(); _cpuData.shift(); _ramData.shift();
+    }
+    _resLabels.push(t);
+    _cpuData.push(cpu);
+    _ramData.push(ram);
+    resourceChart.update();
+    const el = document.getElementById("last-refresh-mini");
+    if (el) el.textContent = t;
+  }
+
+  // ── Fetch métier ─────────────────────────────────────────────────────────
+  let growthChart;
+  try {
+    const res = await fetch("{{ url_for('admin.api_stats') }}");
+    const d = await res.json();
+    const s = d.subscribers;
+
+    // KPIs
+    document.getElementById("kpi-total").textContent = fmt(s.total);
+    document.getElementById("kpi-plans-detail").textContent =
+      `${s.pro || 0} Pro`;
+
+    // RAG KPIs
+    document.getElementById("kpi-vectors").textContent = fmt(d.rag.indexed_sections);
+    document.getElementById("kpi-rag-model").textContent = d.rag.llm_model || "—";
+    // Expose configured models so sysmetrics refresh can compare against downloaded list
+    window._ragLLM   = d.rag.llm_model   || "";
+    window._ragEmbed = d.rag.embed_model  || "";
+
+    // IA panel — only model names, Ollama status comes from sysmetrics
+    // Bug X12 (audit round 3) — embed_model / llm_model sont aujourd'hui
+    // contrôlés par le serveur, mais _LOCAL_MODEL_KEY Redis-backed peut
+    // devenir settable depuis l'UI ou via API tenant. Defense-in-depth :
+    // escHtml avant interpolation.
+    document.getElementById("rag-body").innerHTML = `
+      <div class="info-row"><span class="small">Embedding</span><code style="font-size:.78rem;">${escHtml(d.rag.embed_model || "—")}</code></div>
+      <div class="info-row"><span class="small">LLM</span><code style="font-size:.78rem;">${escHtml(d.rag.llm_model || "—")}</code></div>
+      <div class="info-row"><span class="small">Ollama</span><span id="rag-ollama-status" class="small text-muted">…</span></div>
+      <div class="info-row"><span class="small">ChromaDB</span>
+        <span class="small fw-semibold">${d.rag.status === "ok" ? "✅ connecté" : "⚠️ " + escHtml(d.rag.status || "inconnu")}</span>
+      </div>`;
+
+
+    // ── Graphique croissance ──────────────────────────────────────────────
+    const ctx1 = document.getElementById("chart-growth").getContext("2d");
+    growthChart = new Chart(ctx1, {
+      type: "bar",
+      data: {
+        labels: s.growth.map(g => g.month),
+        datasets: [{
+          label: "Nouveaux abonnés",
+          data: s.growth.map(g => g.count),
+          backgroundColor: accent + "99",
+          borderColor: accent,
+          borderWidth: 1,
+          borderRadius: 4,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 9 } } },
+          y: { grid: { color: "rgba(128,128,128,.08)" }, ticks: { precision: 0, font: { size: 9 } }, beginAtZero: true },
+        },
+      },
+    });
+
+  } catch (e) {
+    console.error("Erreur stats:", e);
+    document.getElementById("alert-banners").innerHTML =
+      '<div class="alert alert-warning">Impossible de charger les statistiques.</div>';
+  }
+
+  // ── Fetch système (live, rafraîchi toutes les 15 s) ───────────────────
+  async function loadSysmetrics() {
+    try {
+      const r = await fetch("{{ url_for('admin.api_sysmetrics') }}");
+      const m = await r.json();
+
+      document.getElementById("sys-cpu").textContent  = m.cpu_pct + " %";
+      updateDonut(donutCpu, m.cpu_pct);
+
+      _pushResourcePoint(m.cpu_pct, m.ram_pct);
+
+      document.getElementById("sys-ram").textContent  = m.ram_pct + " %";
+      updateDonut(donutRam, m.ram_pct);
+      document.getElementById("sys-ram-detail").textContent =
+        `${m.ram_used_gb} / ${m.ram_total_gb} Go`;
+
+      document.getElementById("sys-disk").textContent = m.disk_pct + " %";
+      updateDonut(donutDisk, m.disk_pct);
+      document.getElementById("sys-disk-detail").textContent =
+        `${m.disk_used_gb} / ${m.disk_total_gb} Go`;
+
+      const dot = document.getElementById("ollama-dot");
+      const statusEl = document.getElementById("ollama-status");
+      if (m.ollama_ok) {
+        dot.className = "dot dot-green";
+        statusEl.textContent = "En ligne";
+        // Show configured models (embed + LLM), flag LLM if not yet downloaded
+        const downloaded = m.ollama_models || [];
+        const llmConf = (window._ragLLM || "").split(":")[0];
+        const llmOk = downloaded.some(n => n.startsWith(llmConf));
+        const llmLabel = window._ragLLM
+          ? (llmOk ? window._ragLLM : window._ragLLM + " ⚠️")
+          : (downloaded.find(n => !n.includes("embed")) || "");
+        document.getElementById("ollama-models").textContent =
+          [window._ragEmbed || "nomic-embed-text", llmLabel].filter(Boolean).join(", ");
+      } else {
+        dot.className = "dot dot-red";
+        statusEl.textContent = "Hors ligne";
+        document.getElementById("ollama-models").textContent = "";
+      }
+      const ragOllama = document.getElementById("rag-ollama-status");
+      if (ragOllama) ragOllama.innerHTML = m.ollama_ok ? "✅ en ligne" : "🔴 hors ligne";
+
+      document.getElementById("last-refresh").textContent =
+        "Rafraîchi à " + new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    } catch (e) {
+      console.warn("sysmetrics unavailable:", e);
+    }
+  }
+
+  await loadSysmetrics();
+  setInterval(loadSysmetrics, 15000);
+
+  // ── LLM provider toggle ────────────────────────────────────────────────
+  const llmToggle = document.getElementById("llm-toggle");
+  const llmWrap   = document.getElementById("llm-toggle-wrap");
+
+  async function loadLlmProvider() {
+    try {
+      const r = await fetch("{{ url_for('admin.get_llm_provider') }}");
+      const d = await r.json();
+      if (!d.mistral_configured) return; // no Mistral key — toggle has no effect, keep hidden
+      llmWrap.style.display = "";        // remove !important override → show toggle
+      llmToggle.checked = (d.provider === "mistral");
+    } catch (e) { console.warn("LLM provider fetch failed:", e); }
+  }
+
+  llmToggle.addEventListener("change", async () => {
+    const provider = llmToggle.checked ? "mistral" : "ollama";
+    try {
+      const r = await fetch("{{ url_for('admin.set_llm_provider') }}", {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-CSRFToken": document.cookie.match(/csrf_token=([^;]+)/)?.[1] || ""},
+        body: JSON.stringify({ provider }),
+      });
+      const d = await r.json();
+      if (!d.success) { alert("Erreur : " + d.error); await loadLlmProvider(); }
+    } catch (e) { console.error("Toggle LLM failed:", e); await loadLlmProvider(); }
+  });
+
+  await loadLlmProvider();
+
+  // ── Local LLM model picker ──────────────────────────────────────────────
+  const localPickerWrap   = document.getElementById("local-llm-picker-wrap");
+  const localSelect       = document.getElementById("local-llm-select");
+  const localSaveBtn      = document.getElementById("local-llm-save-btn");
+  const localActiveHint   = document.getElementById("local-llm-active-hint");
+  const localErrorEl      = document.getElementById("local-llm-error");
+  const localSovBadge     = document.getElementById("local-llm-sovereign-badge");
+  let _activeLocalModel   = "";
+
+  function _fmtSize(bytes) {
+    if (!bytes) return "";
+    const gb = bytes / (1024 ** 3);
+    return gb >= 1 ? gb.toFixed(1) + " GB" : (bytes / (1024 ** 2)).toFixed(0) + " MB";
+  }
+
+  async function loadLocalModels() {
+    try {
+      const provR = await fetch("{{ url_for('admin.get_llm_provider') }}");
+      const provD = await provR.json();
+      // Show the picker either in sovereign mode or when Ollama is the active provider.
+      const showPicker = provD.sovereign_mode || provD.provider === "ollama" || !provD.mistral_configured;
+      if (!showPicker) { localPickerWrap.classList.add("d-none"); return; }
+      localPickerWrap.classList.remove("d-none");
+      if (provD.sovereign_mode) localSovBadge.classList.remove("d-none");
+
+      const r = await fetch("{{ url_for('admin.list_local_llm_models') }}");
+      const d = await r.json();
+      if (d.error) {
+        localErrorEl.textContent = "Ollama injoignable : " + d.error;
+        localErrorEl.classList.remove("d-none");
+        return;
+      }
+      localErrorEl.classList.add("d-none");
+      _activeLocalModel = d.active || "";
+      localSelect.innerHTML = `<option value="">— défaut .env (${escHtml(d.default_env)}) —</option>`;
+      d.models.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m.name;
+        const meta = [m.param_size, m.quantization, _fmtSize(m.size)].filter(Boolean).join(" · ");
+        opt.textContent = meta ? `${m.name}  (${meta})` : m.name;
+        if (m.name === _activeLocalModel) opt.selected = true;
+        localSelect.appendChild(opt);
+      });
+      localActiveHint.textContent = `actif : ${_activeLocalModel || "—"}`;
+      localSaveBtn.disabled = true;
+    } catch (e) {
+      localErrorEl.textContent = "Erreur de chargement.";
+      localErrorEl.classList.remove("d-none");
+    }
+  }
+
+  // Bug X11 (audit round 3) — escHtml vient de util.js (chargé via
+  // base.html). L'ancienne version locale ne couvrait pas `"` ni `'`
+  // → cassait `title="${escHtml(name)}"` sur les chaînes avec quote.
+
+  localSelect.addEventListener("change", () => {
+    localSaveBtn.disabled = (localSelect.value === _activeLocalModel);
+  });
+
+  localSaveBtn.addEventListener("click", async () => {
+    localSaveBtn.disabled = true;
+    try {
+      const r = await fetch("{{ url_for('admin.set_local_llm_model') }}", {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-CSRFToken": document.cookie.match(/csrf_token=([^;]+)/)?.[1] || ""},
+        body: JSON.stringify({ model: localSelect.value }),
+      });
+      const d = await r.json();
+      if (!d.success) {
+        localErrorEl.textContent = "Erreur : " + d.error;
+        localErrorEl.classList.remove("d-none");
+        localSaveBtn.disabled = false;
+        return;
+      }
+      localErrorEl.classList.add("d-none");
+      await loadLocalModels();
+    } catch (e) {
+      localErrorEl.textContent = "Erreur réseau.";
+      localErrorEl.classList.remove("d-none");
+      localSaveBtn.disabled = false;
+    }
+  });
+
+  await loadLocalModels();
+
+  // ── Local embedder picker (Sovereign) ────────────────────────────────────
+  // Shown alongside the LLM picker. Switching = enqueue full corpus reindex.
+  const embedPickerWrap = document.getElementById("local-embed-picker-wrap");
+  const embedSelect     = document.getElementById("local-embed-select");
+  const embedSaveBtn    = document.getElementById("local-embed-save-btn");
+  const embedHintEl     = document.getElementById("local-embed-active-hint");
+  const embedErrorEl    = document.getElementById("local-embed-error");
+  const embedReindexBadge = document.getElementById("local-embed-reindex-badge");
+  let _activeEmbedModel = "";
+
+  async function loadLocalEmbedModels() {
+    try {
+      // Only show the embedder picker when the Ollama embed path is the
+      // one actually serving queries — i.e. Sovereign mode OR when EMBED_PROVIDER
+      // is not Mistral. The provider endpoint already exposes sovereign_mode.
+      const provR = await fetch("{{ url_for('admin.get_llm_provider') }}");
+      const provD = await provR.json();
+      const showPicker = provD.sovereign_mode || provD.provider === "ollama" || !provD.mistral_configured;
+      if (!showPicker) { embedPickerWrap.classList.add("d-none"); return; }
+      embedPickerWrap.classList.remove("d-none");
+
+      const r = await fetch("{{ url_for('admin.list_local_embed_models') }}");
+      const d = await r.json();
+      if (d.error) {
+        embedErrorEl.textContent = "Ollama injoignable : " + d.error;
+        embedErrorEl.classList.remove("d-none");
+        return;
+      }
+      embedErrorEl.classList.add("d-none");
+      _activeEmbedModel = d.active || "";
+      embedSelect.innerHTML = `<option value="">— défaut .env (${escHtml(d.default_env)}) —</option>`;
+      d.models.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m.name;
+        const meta = [m.param_size, m.quantization, _fmtSize(m.size)].filter(Boolean).join(" · ");
+        opt.textContent = meta ? `${m.name}  (${meta})` : m.name;
+        if (m.name === _activeEmbedModel) opt.selected = true;
+        embedSelect.appendChild(opt);
+      });
+      embedHintEl.textContent = `actif : ${_activeEmbedModel || "—"}`;
+
+      // Reindex lock — disable submit while a job is in flight.
+      if (d.reindex_in_progress) {
+        embedReindexBadge.classList.remove("d-none");
+        embedSelect.disabled = true;
+        embedSaveBtn.disabled = true;
+      } else {
+        embedReindexBadge.classList.add("d-none");
+        embedSelect.disabled = false;
+        embedSaveBtn.disabled = true;  // re-enabled on change
+      }
+    } catch (e) {
+      embedErrorEl.textContent = "Erreur de chargement.";
+      embedErrorEl.classList.remove("d-none");
+    }
+  }
+
+  embedSelect.addEventListener("change", () => {
+    embedSaveBtn.disabled = (embedSelect.value === _activeEmbedModel);
+  });
+
+  embedSaveBtn.addEventListener("click", async () => {
+    const target = embedSelect.value;
+    if (!confirm(
+      "Confirmer le passage à \"" + (target || "défaut .env") + "\" ?\n\n" +
+      "Une réindexation de tout le corpus va être lancée en tâche de fond.\n" +
+      "La recherche reste accessible mais la qualité est dégradée le temps\n" +
+      "que les chunks soient ré-embeddés."
+    )) return;
+
+    embedSaveBtn.disabled = true;
+    try {
+      const r = await fetch("{{ url_for('admin.set_local_embed_model') }}", {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-CSRFToken": document.cookie.match(/csrf_token=([^;]+)/)?.[1] || ""},
+        body: JSON.stringify({ model: target }),
+      });
+      const d = await r.json();
+      if (!d.success) {
+        embedErrorEl.textContent = "Erreur : " + (d.error || "inconnue");
+        embedErrorEl.classList.remove("d-none");
+        embedSaveBtn.disabled = false;
+        return;
+      }
+      embedErrorEl.classList.add("d-none");
+      await loadLocalEmbedModels();
+    } catch (e) {
+      embedErrorEl.textContent = "Erreur réseau.";
+      embedErrorEl.classList.remove("d-none");
+      embedSaveBtn.disabled = false;
+    }
+  });
+
+  await loadLocalEmbedModels();
+})();
+</script>
+{% endblock %}

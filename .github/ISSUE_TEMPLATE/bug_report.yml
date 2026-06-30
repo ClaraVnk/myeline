@@ -1,0 +1,67 @@
+name: 🐛 Bug report
+description: Report a problem so it can be fixed
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please do **not** include
+        secrets (API keys, tokens, `CLOUD_TOKEN_KEY`) in logs you paste here.
+        Security issues should go to hello@myeline.io instead.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the bug.
+      placeholder: When I do X, Y happens instead of Z.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Output of `podman-compose logs web` (redact secrets).
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: Myeline version
+      description: Value of MYELINE_VERSION, or the commit SHA if building from source.
+    validations:
+      required: true
+  - type: dropdown
+    id: llm
+    attributes:
+      label: LLM setup
+      options:
+        - Local Ollama
+        - BYOK — Mistral
+        - BYOK — OpenAI
+        - BYOK — Anthropic Claude
+        - BYOK — Google Gemini
+        - Other / OpenAI-compatible endpoint
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, container engine (Podman/Docker) and version, deployment notes.
+    validations:
+      required: true

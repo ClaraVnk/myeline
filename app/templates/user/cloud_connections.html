@@ -1,0 +1,183 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("Cloud services") }} — Myeline{% endblock %}
+{% block head %}{{ super() }}<meta name="viewport" content="width=device-width, initial-scale=1">{% endblock %}
+{% block content %}
+
+<div class="container my-5 px-3 px-md-4" style="max-width:900px;">
+
+  <div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{{ url_for('user.dashboard') }}" class="btn btn-outline-secondary btn-sm">← {{ _("Back") }}</a>
+    <h2 class="fw-bold mb-0">{{ _("Cloud services") }}</h2>
+    <a href="{{ url_for('user_library.personal_library') }}" class="btn btn-outline-secondary btn-sm ms-auto">
+      📄 {{ _("My documents") }}
+    </a>
+  </div>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if connections %}
+  <div class="mb-4">
+    <h5 class="fw-semibold mb-3">{{ _("Connected services") }}</h5>
+    {% for conn in connections %}
+    <div class="card border-0 shadow-sm rounded-4 mb-3 p-3">
+      <div class="d-flex align-items-start gap-3">
+        {# Bug X6 — js-hide-on-error (util.js). #}
+        <img src="{{ url_for('static', filename='img/providers/' + conn.provider + '.svg') }}"
+             width="36" height="36" alt="{{ conn.provider_label }}"
+             class="rounded js-hide-on-error">
+        <div class="flex-grow-1">
+          <div class="fw-semibold">{{ conn.provider_label }}</div>
+          <div class="text-muted small">
+            {{ conn.indexed_count }} / {{ conn.document_count }} {{ _("indexed documents") }}
+            {% if conn.last_sync_at %}
+              &nbsp;·&nbsp; {{ _("Last sync") }}: {{ conn.last_sync_at.strftime('%d/%m/%Y %H:%M') }}
+            {% endif %}
+            {% if conn.folder_name and conn.folder_name != 'All library' %}
+              &nbsp;·&nbsp; 📁 {{ conn.folder_name }}
+            {% elif conn.provider == 'zotero' %}
+              &nbsp;·&nbsp; {{ _("Full library") }}
+            {% else %}
+              &nbsp;·&nbsp; {{ _("Full drive") }}
+            {% endif %}
+          </div>
+        </div>
+        <div class="d-flex gap-2 flex-shrink-0 align-items-center flex-wrap justify-content-end">
+          {% set freq_options = [(15, _("Every 15 min")), (60, _("Every hour")), (240, _("Every 4 hours")), (720, _("Every 12 hours")), (1440, _("Every 24 hours"))] %}
+          <select class="form-select form-select-sm select-frequency"
+                  data-connection-id="{{ conn.id }}"
+                  style="width:140px;"
+                  title="{{ _('Sync frequency') }}">
+            {% for mins, label in freq_options %}
+              <option value="{{ mins }}" {% if conn.sync_frequency_minutes == mins %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          {% if conn.provider in ('gdrive', 'onedrive', 'dropbox', 'kdrive') %}
+          <a href="{{ url_for('user_cloud.folder_picker', connection_id=conn.id) }}"
+             class="btn btn-outline-secondary btn-sm" style="width:130px;">{{ _("Folder") }}</a>
+          {% endif %}
+          <button class="btn btn-primary btn-sm btn-sync"
+                  data-connection-id="{{ conn.id }}"
+                  style="width:130px;"
+                  {% if conn.is_syncing %}disabled{% endif %}>
+            {% if conn.is_syncing %}{{ _("Syncing…") }}{% else %}{{ _("Sync") }}{% endif %}
+          </button>
+          {# Bug X6 — js-confirm-form au lieu d'onsubmit inline. #}
+          <form method="POST"
+                action="{{ url_for('user_cloud.disconnect', connection_id=conn.id) }}"
+                class="m-0 d-flex js-confirm-form"
+                data-confirm="{{ _('Disconnect %(provider)s and delete all its documents from your index?', provider=conn.provider_label) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline-danger btn-sm" style="width:130px;">{{ _("Disconnect") }}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div>
+    <h5 class="fw-semibold mb-3">{{ _("Connect a service") }}</h5>
+
+    <div class="row g-3">
+
+      {% set connected_providers = connections | map(attribute='provider') | list %}
+
+      {% set provider_list = [
+           ('gdrive',   'Google Drive',              url_for('user_cloud.cloud_connect', provider='gdrive')),
+           ('onedrive', 'OneDrive',                  url_for('user_cloud.cloud_connect', provider='onedrive')),
+           ('dropbox',  'Dropbox',                   url_for('user_cloud.cloud_connect', provider='dropbox')),
+           ('kdrive',   'kDrive',                    url_for('user_cloud.cloud_connect', provider='kdrive')),
+           ('s3',       'Amazon S3 / S3-compatible', url_for('user_cloud.s3_connect_form')),
+           ('zotero',   'Zotero',                    url_for('user_cloud.zotero_connect_form')),
+           ('notion',   'Notion',                    url_for('user_cloud.notion_connect_form')),
+           ('webdav',   'WebDAV (Nextcloud…)',        url_for('user_cloud.webdav_connect_form')),
+         ] %}
+
+      {% for provider, label, connect_url in provider_list %}
+      {% if provider not in connected_providers
+            and (allowed_providers is none or provider in allowed_providers) %}
+      <div class="col-12 col-sm-6">
+        <a href="{{ connect_url }}"
+           class="card border-0 shadow-sm rounded-4 text-decoration-none d-flex flex-row align-items-center gap-3 p-3">
+          {# Bug X6 — js-hide-on-error (util.js). #}
+          <img src="{{ url_for('static', filename='img/providers/' + provider + '.svg') }}"
+               width="32" height="32" alt="{{ label }}"
+               class="rounded js-hide-on-error">
+          <div>
+            <div class="fw-semibold text-dark">{{ label }}</div>
+          </div>
+        </a>
+      </div>
+      {% endif %}
+      {% endfor %}
+
+    </div>
+
+  </div>
+
+</div>
+
+{% block scripts %}
+{{ super() }}
+<script nonce="{{ csp_nonce() }}">
+const CSRF = '{{ csrf_token() }}';
+const I18N = {
+  syncing: {{ _("Syncing…") | tojson }},
+  launched: {{ _("Launched ✓") | tojson }},
+  networkError: {{ _("Network error.") | tojson }},
+};
+
+document.querySelectorAll('.select-frequency').forEach(sel => {
+  sel.addEventListener('change', function () {
+    const connId = this.dataset.connectionId;
+    const minutes = parseInt(this.value, 10);
+    fetch(`/user/cloud/${connId}/set-frequency`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ minutes }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) {
+        console.error('set-frequency error:', data.error);
+      }
+    })
+    .catch(err => console.error('set-frequency network error:', err));
+  });
+});
+
+document.querySelectorAll('.btn-sync').forEach(btn => {
+  btn.addEventListener('click', function () {
+    const connId = this.dataset.connectionId;
+    const url = `/user/cloud/${connId}/sync`;
+    btn.disabled = true;
+    btn.textContent = I18N.syncing;
+    fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        btn.textContent = I18N.launched;
+      } else {
+        btn.textContent = data.error || '{{ _("Error") }}';
+        btn.disabled = false;
+      }
+    })
+    .catch(() => {
+      btn.textContent = I18N.networkError;
+      btn.disabled = false;
+    });
+  });
+});
+</script>
+{% endblock %}
+{% endblock %}

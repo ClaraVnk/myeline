@@ -1,0 +1,88 @@
+{% extends "base/base.html" %}
+{% block title %}{{ _("Log in") }} — Myeline{% endblock %}
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center flex-grow-1 py-5" style="min-height: calc(100vh - 200px);">
+  <div class="liquid-glass p-4 p-md-5" style="max-width: 420px; width: 100%;">
+    <div class="text-center mb-4">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Myeline" class="rounded mx-auto d-block mb-3" style="max-width: 80px; height: auto;">
+      <h2 class="fw-bold mb-0">
+        {% if is_admin %}
+          {{ _("Log in to admin area") }}
+        {% else %}
+          {{ _("Log in to your account") }}
+        {% endif %}
+      </h2>
+    </div>
+
+    <form method="POST" novalidate autocomplete="off">
+      {{ form.hidden_tag() }}
+
+      <div class="mb-3">
+        {{ form.email.label(class="form-label fw-medium") }}
+        {{ form.email(class="form-control", placeholder=_("Your email")) }}
+        {% if form.email.errors %}
+          <div class="text-danger small mt-1">
+            {% for error in form.email.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.password.label(class="form-label fw-medium") }}
+        {{ form.password(class="form-control", placeholder=_("Password")) }}
+        {% if form.password.errors %}
+          <div class="text-danger small mt-1">
+            {% for error in form.password.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      {% if form.two_factor_code %}
+      <div class="mb-3">
+        {{ form.two_factor_code.label(class="form-label fw-medium") }}
+        {{ form.two_factor_code(class="form-control", placeholder=_("Code received by email")) }}
+        {% if form.two_factor_code.errors %}
+          <div class="text-danger small mt-1">
+            {% for error in form.two_factor_code.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
+      <button type="submit" class="btn btn-primary w-100 mb-3">{{ form.submit.label.text }}</button>
+
+      <div class="text-center small">
+        <a href="{{ url_for('auth.register') }}" class="text-decoration-none">{{ _("No account yet? Register") }}</a>
+      </div>
+      <div class="mt-2 text-center small">
+        <a href="{{ url_for('auth.forgot_password') }}" class="text-decoration-none text-muted">{{ _("Forgot password?") }}</a>
+      </div>
+    </form>
+
+    {% include 'log/_social_buttons.html' %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if config.RECAPTCHA_SITE_KEY and config.RECAPTCHA_SITE_KEY not in ['dev', 'false', ''] %}
+<script src="https://www.google.com/recaptcha/api.js?render={{ config.RECAPTCHA_SITE_KEY }}"></script>
+<script nonce="{{ csp_nonce() }}">
+  document.addEventListener('DOMContentLoaded', function () {
+    var form = document.querySelector('form');
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      grecaptcha.ready(function () {
+        grecaptcha.execute('{{ config.RECAPTCHA_SITE_KEY }}', { action: 'login' })
+          .then(function (token) {
+            document.getElementById('g-recaptcha-response').value = token;
+            form.submit();
+          })
+          .catch(function () { form.submit(); });
+      });
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}

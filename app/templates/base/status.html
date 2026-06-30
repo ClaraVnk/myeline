@@ -1,0 +1,131 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("Status") }} — Myeline{% endblock %}
+
+{% set _service_labels = {
+  "db":      _("Database"),
+  "redis":   _("Cache & queue"),
+  "ollama":  _("Document understanding"),
+  "mistral": _("AI synthesis"),
+  "web":     _("Web application"),
+} %}
+
+{% set _status_classes = {
+  "ok":       "success",
+  "degraded": "warning",
+  "down":     "danger",
+  "skipped":  "secondary",
+  "unknown":  "secondary",
+} %}
+
+{% set _overall_class = "secondary" %}
+{% if current %}
+  {% set _vals = [current.db_status, current.redis_status, current.web_status] %}
+  {% if "down" in _vals %}{% set _overall_class = "danger" %}
+  {% elif "degraded" in _vals or current.ollama_status == "down" or current.mistral_status == "down" %}{% set _overall_class = "warning" %}
+  {% else %}{% set _overall_class = "success" %}{% endif %}
+{% endif %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 900px;">
+
+  <!-- ── Header ─────────────────────────────────────────────────────── -->
+  <header class="text-center mb-4">
+    <h1 class="fw-semibold mb-2" style="font-size:clamp(1.6rem, 4vw, 2.2rem);">
+      {{ _("System status") }}
+    </h1>
+    <span class="badge bg-{{ _overall_class }} px-3 py-2" style="font-size:.9rem;">
+      {% if _overall_class == "success" %}● {{ _("All systems operational") }}
+      {% elif _overall_class == "warning" %}▲ {{ _("Some services degraded") }}
+      {% elif _overall_class == "danger" %}✕ {{ _("Major outage") }}
+      {% else %}— {{ _("Status unknown") }}{% endif %}
+    </span>
+    {% if current and current.sampled_at %}
+    <p class="text-muted small mt-2 mb-0">
+      {{ _("Last check:") }} {{ current.sampled_at.strftime("%Y-%m-%d %H:%M") }} UTC
+    </p>
+    {% endif %}
+  </header>
+
+  <!-- ── Current state ──────────────────────────────────────────────── -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">{{ _("Current state") }}</div>
+    <div class="list-group list-group-flush">
+      {% for svc, label in _service_labels.items() %}
+        {% set state = current[svc + "_status"] if current else "unknown" %}
+        {% set cls = _status_classes.get(state, "secondary") %}
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ label }}</strong>
+            {% if svc == "mistral" and state == "skipped" %}
+              <span class="text-muted small ms-2">{{ _("(not configured on this deployment)") }}</span>
+            {% endif %}
+          </div>
+          <span class="badge bg-{{ cls }}">
+            {% if state == "ok" %}{{ _("operational") }}
+            {% elif state == "degraded" %}{{ _("degraded") }}
+            {% elif state == "down" %}{{ _("outage") }}
+            {% elif state == "skipped" %}{{ _("not used") }}
+            {% else %}{{ _("unknown") }}{% endif %}
+          </span>
+        </div>
+      {% endfor %}
+      {% if latency_bucket %}
+        <div class="list-group-item d-flex justify-content-between align-items-center text-muted small">
+          <span>{{ _("End-to-end response time") }}</span>
+          <span>{{ latency_bucket }}</span>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── 30-day uptime bars ─────────────────────────────────────────── -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">{{ _("30-day uptime") }}</div>
+    <div class="card-body">
+      {% for svc, label in _service_labels.items() %}
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-baseline mb-1">
+          <strong>{{ label }}</strong>
+          {% set valid = history | selectattr("services." ~ svc ~ ".uptime", "ne", None) | list %}
+          {% if valid %}
+            {% set total_uptime = (valid | sum(attribute="services." ~ svc ~ ".uptime")) / valid | length %}
+            <span class="text-muted small">{{ "%.2f"|format(total_uptime) }}% {{ _("over 30 days") }}</span>
+          {% else %}
+            <span class="text-muted small">{{ _("no data") }}</span>
+          {% endif %}
+        </div>
+        <div class="d-flex gap-1" style="height:28px;">
+          {% for day in history %}
+            {% set d = day.services[svc] %}
+            {% if d.uptime is none %}
+              {% set bg = "rgba(180,180,180,.25)" %}
+              {% set tooltip = day.date + " — " ~ _("no sample") %}
+            {% elif d.uptime >= 99.5 %}
+              {% set bg = "#34c759" %}
+              {% set tooltip = day.date + " — " ~ "%.1f"|format(d.uptime) + "% (" ~ d.samples + " " ~ _("samples") + ")" %}
+            {% elif d.uptime >= 95 %}
+              {% set bg = "#ff9500" %}
+              {% set tooltip = day.date + " — " ~ "%.1f"|format(d.uptime) + "%" %}
+            {% else %}
+              {% set bg = "#ff3b30" %}
+              {% set tooltip = day.date + " — " ~ "%.1f"|format(d.uptime) + "%" %}
+            {% endif %}
+            <div style="flex:1;background:{{ bg }};border-radius:3px;cursor:default;"
+                 title="{{ tooltip }}"></div>
+          {% endfor %}
+        </div>
+        <div class="d-flex justify-content-between text-muted small mt-1">
+          <span>{{ history[0].date }}</span>
+          <span>{{ history[-1].date }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <p class="text-muted small text-center mb-0">
+    {{ _("Updated every 5 minutes. For incident communication, contact") }}
+    <a href="mailto:hello@myeline.io">hello@myeline.io</a>.
+  </p>
+</div>
+{% endblock %}

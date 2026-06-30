@@ -1,0 +1,95 @@
+# Web Framework
+# Flask 3.x required by CVE-2026-27205 (missing Vary: Cookie header on session
+# access via some code paths — fixed in 3.1.3). The 2→3 migration audit
+# (security audit 2026-05-08) found no breaking-change usage in this codebase.
+flask>=3.1.3,<4.0.0
+flask_sqlalchemy>=3.0.0,<4.0.0
+flask-migrate>=4.0.0,<5.0.0
+flask_login>=0.6.0,<1.0.0
+flask_wtf>=1.1.0,<2.0.0
+flask-babel>=4.0.0,<5.0.0
+flask-mail>=0.9.0,<1.0.0
+flask-limiter>=3.3.0,<4.0.0
+gunicorn>=21.0.0,<24.0.0
+
+# Database
+pymysql>=1.1.0,<2.0.0
+sqlalchemy>=2.0.0,<3.0.0
+
+# Security & Cryptography
+authlib>=1.3.0,<2.0.0
+pyotp>=2.9.0,<3.0.0
+qrcode[pil]>=7.4.0,<9.0.0
+cryptography>=48.0.1,<49.0.0  # >=48.0.1 fixes GHSA-537c-gmf6-5ccf
+passlib>=1.7.4,<2.0.0
+# Argon2id password hashing — werkzeug's default is non-deterministic
+# across versions (PBKDF2 in 2.x, scrypt in 3.x). Pin explicitly.
+argon2-cffi>=23.0.0,<26.0.0
+itsdangerous>=2.1.0,<3.0.0
+werkzeug>=2.3.0,<4.0.0
+
+# Forms & Validation
+wtforms>=3.0.0,<4.0.0
+email-validator>=2.0.0,<3.0.0
+# HTML sanitization — audit round 3 bug X8 : nettoyer le HTML Quill
+# produit par admin avant `broadcast_email` (whitelist tags/attrs).
+bleach>=6.4.0,<7.0.0  # >=6.4.0 fixes GHSA-gj48-438w-jh9v + GHSA-8rfp-98v4-mmr6 (XSS via formaction/href)
+
+# Web Scraping & Parsing
+requests>=2.31.0,<3.0.0
+beautifulsoup4>=4.12.0,<5.0.0
+trafilatura>=2.0.0,<3.0.0
+lxml>=5.0.0,<7.0.0
+pdfminer.six>=20221105
+pdfplumber>=0.11.0,<1.0.0
+webdav4[fsspec]>=0.9.8,<1.0.0
+feedparser>=6.0.0,<7.0.0
+python-docx>=1.1.0,<2.0.0
+odfpy>=1.4.0,<2.0.0
+
+# AI & Translation
+# NOTE: deep_translator removed (security audit 2026-05-08): no import in
+# the codebase + PYSEC-2022-252 (account takeover incident on PyPI in 2022).
+# Re-add only if a translation feature is reintroduced AND pinned to a
+# post-incident version (>=1.11.0).
+google-genai>=0.2.0,<1.0.0
+chromadb>=0.5.0,<1.0.0
+
+# External Services
+sib-api-v3-sdk>=7.6.0,<8.0.0
+google-api-python-client>=2.100.0,<3.0.0
+google-auth-oauthlib>=1.1.0,<2.0.0
+google-auth-httplib2>=0.2.0,<1.0.0
+boto3>=1.34.0,<2.0.0
+
+# NOTE: weasyprint removed (security audit 2026-05-08): no import in the
+# codebase + CVE-2025-68616 (SSRF protection bypass via HTTP redirect, fixed
+# in 68.0). Re-add as `weasyprint>=68.0,<70.0` when PDF export is implemented.
+
+# Cache, Queue & Session
+redis>=5.0.0,<8.0.0
+rq>=1.16.0,<2.0.0
+fernet>=1.0.0,<2.0.0
+
+# Utilities
+python-dotenv>=1.0.0,<2.0.0
+python-slugify>=8.0.0,<9.0.0
+MarkupSafe>=2.1.0,<3.0.0
+psutil>=5.9.0,<8.0.0
+# TTL caches for OIDC discovery + JWKS — see app/services/oidc_service.py
+cachetools>=5.3.0,<8.0.0
+# XXE / billion-laughs hardening for XML parsers wrapping external responses
+defusedxml>=0.7.1,<1.0.0
+
+# Observability — Prometheus exposition format for /metrics
+prometheus_client>=0.19.0,<1.0.0
+
+# Transitive security floors — pinned above the patched version of known CVEs.
+# These are pulled in transitively (requests/boto3/chromadb/authlib); declaring
+# floors here forces the resolver to pick non-vulnerable versions.
+urllib3>=2.7.0      # PYSEC-2026-141/142
+idna>=3.15          # PYSEC-2026-215
+starlette>=1.3.1    # PYSEC-2026-161/248/249, CVE-2026-48817/48818
+joserfc>=1.6.7      # CVE-2026-48990
+
+

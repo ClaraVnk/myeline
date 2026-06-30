@@ -1,0 +1,51 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("Connect Zotero") }} — Myeline{% endblock %}
+{% block content %}
+
+<div class="container my-5 px-3" style="max-width:560px;">
+
+  <div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{{ url_for('user_cloud.cloud_connections') }}" class="btn btn-outline-secondary btn-sm">← {{ _("Back") }}</a>
+    <h2 class="fw-bold mb-0">{{ _("Connect Zotero") }}</h2>
+  </div>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+    <p class="text-muted mb-4">
+      {{ _("Enter your Zotero API key and user ID to sync your library's PDF attachments.") }}
+      <a href="https://www.zotero.org/settings/keys/new" target="_blank" rel="noopener">{{ _("Generate an API key") }}</a>
+      {{ _("with read access on your library.") }}
+      {{ _("Your user ID is visible in your Zotero account settings.") }}
+    </p>
+
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="mb-3">
+        <label for="user_id" class="form-label fw-semibold">{{ _("Zotero User ID") }}</label>
+        <input type="text" id="user_id" name="user_id" class="form-control"
+               placeholder="1234567" required pattern="[0-9]+"
+               autocomplete="off">
+        <div class="form-text">{{ _("Numeric ID found at zotero.org/settings/keys") }}</div>
+      </div>
+
+      <div class="mb-4">
+        <label for="api_key" class="form-label fw-semibold">{{ _("Zotero API Key") }}</label>
+        <input type="password" id="api_key" name="api_key" class="form-control"
+               placeholder="••••••••••••••••••••••••••••" required
+               autocomplete="new-password">
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">{{ _("Connect") }}</button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

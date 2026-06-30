@@ -1,0 +1,293 @@
+x-podman:
+  # podman-compose puts every service in a single pod by default; that
+  # conflicts with userns_mode: keep-id (which socket-proxy needs to
+  # read the rootless host Podman socket). Disabling pod mode lets each
+  # service have its own user namespace.
+  in_pod: false
+
+services:
+  web:
+    build: .
+    # `web` no longer touches the host Podman socket directly. It hits
+    # `socket-proxy` over TCP, which exposes a deny-by-default subset
+    # of the Podman REST API (containers / networks / volumes / images /
+    # exec). Net effect: an RCE in `web` can't escalate to host root.
+    # The keep-id + label=disable acrobatics that were here before the
+    # split are now on socket-proxy only.
+    # Bug C-H4 (audit round 3) — bind sur 127.0.0.1 par défaut. L'ancien
+    # `"5000:5000"` exposait Flask sur toutes les interfaces du LAN
+    # (192.168.x.x typique d'une dev machine). Combiné à Werkzeug
+    # debugger sur ENV=development, n'importe qui sur le LAN peut RCE
+    # via le PIN debugger. Use SSH port-forwarding pour accès distant
+    # (cf. CLAUDE.md "OAuth testing in dev").
+    # Override pour les setups qui veulent vraiment exposer : DEV_HOST_BIND=0.0.0.0.
+    ports:
+      - "${DEV_HOST_BIND:-127.0.0.1}:5000:5000"
+    env_file:
+      - .env
+    environment:
+      # — Environnement -------------------------------------------------------
+      # Default to dev unless .env overrides — supports the "dev container with
+      # real prod-grade secrets behind Pangolin tunnel" hybrid setup.
+      - FLASK_ENV=${FLASK_ENV:-development}
+      # Bug C-H4 — par défaut FLASK_DEBUG=false même en dev. Werkzeug
+      # debugger active un endpoint console exposant un PIN (déductible
+      # via une chaîne d'infos publiques). Si vraiment nécessaire :
+      # FLASK_DEBUG=true dans .env, MAIS uniquement avec bind 127.0.0.1
+      # (cf. ports ci-dessus).
+      - FLASK_DEBUG=${FLASK_DEBUG:-false}
+      - LOG_TO_STDOUT=true
+      # — Secrets -------------------------------------------------------------
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
+      # — Base de données -----------------------------------------------------
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://myeline_user:${MYSQL_PASSWORD:-myeline_password}@mariadb:3306/myeline
+      - DATABASE_URL=mysql+pymysql://myeline_user:${MYSQL_PASSWORD:-myeline_password}@mariadb:3306/myeline
+      # — Emails ---------------------------------------------------------------
+      - BREVO_API_KEY=${BREVO_API_KEY:-dev}
+      - MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER:-noreply@mgnews.fr}
+      - MAIL_SENDER_NAME=${MAIL_SENDER_NAME:-Myeline}
+      - DEV_EMAIL=${DEV_EMAIL:-dev@example.com}
+      # — Paiement -------------------------------------------------------------
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_dev}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY:-pk_test_dev}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-dev}
+      # — Sécurité (désactivée en dev via FLASK_ENV) ---------------------------
+      - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY:-dev}
+      - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY:-dev}
+      # — Infrastructure -------------------------------------------------------
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_URL=http://ollama:11434
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY:-}
+      - MISTRAL_LLM_MODEL=${MISTRAL_LLM_MODEL:-mistral-medium-latest}
+      - MISTRAL_AUX_MODEL=${MISTRAL_AUX_MODEL:-mistral-small-latest}
+      - MOCK_IMAP=true
+      # CSV of emails exempt from mandatory 2FA — OAuth-review accounts.
+      - BYPASS_2FA_EMAILS=${BYPASS_2FA_EMAILS:-}
+      # Enterprise provisioning hits the Podman daemon through the
+      # filtering proxy (see socket-proxy service below) instead of
+      # mounting the raw socket.
+      - PODMAN_API_URI=tcp://socket-proxy:2375
+    volumes:
+      - ./app:/app/app:z
+      - ./migrations:/app/migrations:z
+      - ./translations:/app/translations:z
+      - ./scripts:/app/scripts:z
+      - ./uploads:/app/uploads:z
+      - ./data:/app/data:z
+      - ./logs:/app/logs:z
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+      socket-proxy:
+        condition: service_started
+    restart: "no"
+    # Bug C1 (audit round 3) — web a un besoin légitime du socket-proxy
+    # (provisioning Enterprise via Podman REST API).
+    networks:
+      - app-network
+      - provisioner-net
+
+  cron:
+    # Same image as web — runs supercronic with the versioned crontab.
+    # Each entry execs `flask run-cron <task>` inside this container.
+    build: .
+    command: supercronic /app/scripts/crontab
+    env_file:
+      - .env
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=${FLASK_ENV:-development}
+      - FLASK_DEBUG=false
+      - LOG_TO_STDOUT=true
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://myeline_user:${MYSQL_PASSWORD:-myeline_password}@mariadb:3306/myeline
+      - DATABASE_URL=mysql+pymysql://myeline_user:${MYSQL_PASSWORD:-myeline_password}@mariadb:3306/myeline
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_URL=http://ollama:11434
+      - BREVO_API_KEY=${BREVO_API_KEY:-dev}
+      - MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER:-noreply@mgnews.fr}
+      - MAIL_SENDER_NAME=${MAIL_SENDER_NAME:-Myeline}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY:-}
+      - MISTRAL_LLM_MODEL=${MISTRAL_LLM_MODEL:-mistral-medium-latest}
+      - MISTRAL_AUX_MODEL=${MISTRAL_AUX_MODEL:-mistral-small-latest}
+    volumes:
+      - ./app:/app/app:z
+      - ./migrations:/app/migrations:z
+      - ./scripts:/app/scripts:z
+      - ./uploads:/app/uploads:z
+      - ./data:/app/data:z
+      - ./logs:/app/logs:z
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: "no"
+    # Bug C1 (audit round 3) — cron a un besoin légitime du socket-proxy
+    # pour le tenant volume sweep. Tous les autres services restent sur
+    # app-network seul (pas d'accès au socket via le proxy).
+    networks:
+      - app-network
+      - provisioner-net
+
+  worker:
+    build: .
+    command: rq worker --url redis://redis:6379/0 myeline-pro myeline
+    env_file:
+      - .env
+    environment:
+      - FLASK_ENV=${FLASK_ENV:-development}
+      - FLASK_DEBUG=false
+      - LOG_TO_STDOUT=true
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://myeline_user:${MYSQL_PASSWORD:-myeline_password}@mariadb:3306/myeline
+      - DATABASE_URL=mysql+pymysql://myeline_user:${MYSQL_PASSWORD:-myeline_password}@mariadb:3306/myeline
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_URL=http://ollama:11434
+      - BREVO_API_KEY=${BREVO_API_KEY:-dev}
+      - MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER:-noreply@mgnews.fr}
+      - MAIL_SENDER_NAME=${MAIL_SENDER_NAME:-Myeline}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_dev}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-dev}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY:-}
+      - MISTRAL_LLM_MODEL=${MISTRAL_LLM_MODEL:-mistral-medium-latest}
+      - MISTRAL_AUX_MODEL=${MISTRAL_AUX_MODEL:-mistral-small-latest}
+    volumes:
+      - ./app:/app/app:z
+      - ./migrations:/app/migrations:z
+      - ./uploads:/app/uploads:z
+      - ./data:/app/data:z
+      - ./logs:/app/logs:z
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    restart: "no"
+    networks:
+      - app-network
+
+  ollama:
+    image: docker.io/ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./data/ollama:/root/.ollama:z
+    restart: "no"
+    networks:
+      - app-network
+
+  mariadb:
+    image: docker.io/library/mariadb:10.11
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root_password}
+      - MYSQL_DATABASE=myeline
+      - MYSQL_USER=myeline_user
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-myeline_password}
+    ports:
+      # SECURITY (audit H-8): bind to loopback only. Default '0.0.0.0:3306'
+      # exposes MariaDB to anyone on the LAN; combined with the default
+      # password (myeline_password) that's a one-step takeover. Use SSH
+      # port-forwarding from outside the dev box if remote access is needed.
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql:z
+      - ./scripts/init-mariadb.sql:/docker-entrypoint-initdb.d/01-init-mariadb.sql:ro,z
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: "no"
+    networks:
+      - app-network
+
+  redis:
+    image: docker.io/library/redis:7-alpine
+    command: redis-server --save "" --appendonly no
+    ports:
+      # SECURITY (audit H-8): loopback only. Redis has no auth in dev,
+      # exposing it to the LAN gives any peer on the network a full
+      # session-cookie / OAuth-token / RAG-conversation read.
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: "no"
+    networks:
+      - app-network
+
+  # Same socket-proxy hardening as docker-compose.yml. See its comment
+  # block for the full rationale; the short version is: `web` no longer
+  # mounts the host Podman socket, it talks to this proxy which exposes
+  # only the whitelisted endpoints needed by enterprise provisioning.
+  socket-proxy:
+    image: docker.io/tecnativa/docker-socket-proxy:latest
+    userns_mode: keep-id
+    security_opt:
+      - label=disable
+    environment:
+      - LOG_LEVEL=warning
+      - CONTAINERS=1
+      - NETWORKS=1
+      - VOLUMES=1
+      - IMAGES=1
+      - EXEC=1
+      - INFO=1
+      - VERSION=1
+      - PING=1
+      - POST=1
+      - AUTH=0
+      - BUILD=0
+      - COMMIT=0
+      - CONFIGS=0
+      - DISTRIBUTION=0
+      - EVENTS=0
+      - NODES=0
+      - PLUGINS=0
+      - SECRETS=0
+      - SERVICES=0
+      - SESSION=0
+      - SWARM=0
+      - SYSTEM=0
+      - TASKS=0
+    volumes:
+      - ${PODMAN_SOCKET_PATH:-/run/user/1000/podman/podman.sock}:/var/run/docker.sock:ro,z
+    restart: "no"
+    # Bug C1 — socket-proxy isolé sur provisioner-net. Seuls web + cron y
+    # accèdent ; worker/ollama/mariadb/redis/newt ne peuvent plus l'atteindre.
+    networks:
+      - provisioner-net
+
+  newt:
+    image: docker.io/fosrl/newt:latest
+    command:
+      - newt
+      - -endpoint
+      - ${PANGOLIN_URL}
+      - -id
+      - ${NEWT_ID}
+      - -secret
+      - ${NEWT_SECRET}
+    depends_on:
+      - web
+    restart: "no"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+  # Bug C1 (audit round 3) — réseau dédié pour le socket-proxy.
+  provisioner-net:
+    driver: bridge
+    internal: true

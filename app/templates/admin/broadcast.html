@@ -1,0 +1,184 @@
+{% extends 'base/base.html' %}
+
+{% block head %}
+{{ super() }}
+{# Bug X19 (audit round 3) — bumpé de Quill 1.3.7 (2019, advisories
+   XSS GHSA-4943-9vgg-gr5r) à Quill 2.0.3 (2024). API publique compatible
+   pour notre usage (theme + toolbar config + getSemanticHTML). #}
+<link href="{{ url_for('static', filename='vendor/quill/quill.snow.css') }}" rel="stylesheet">
+{# A4-L2 (debt) — Quill self-hosted under /static/vendor/quill/. SRI is
+   no longer applicable on first-party assets. #}
+<style nonce="{{ csp_nonce() }}">
+  #quill-editor {
+    height: 340px;
+    border-radius: 0 0 .5rem .5rem;
+    font-size: 1rem;
+  }
+  .ql-toolbar { border-radius: .5rem .5rem 0 0; }
+  .plan-chip {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .35rem .75rem; border-radius: 2rem; cursor: pointer;
+    border: 2px solid var(--border-subtle, rgba(128,128,128,.25));
+    background: transparent;
+    color: var(--text, inherit);
+    font-size: .875rem; user-select: none; transition: border-color .15s, background .15s;
+  }
+  .plan-chip input { display: none; }
+  .plan-chip:has(input:checked) {
+    border-color: var(--accent, #0071e3);
+    background: color-mix(in srgb, var(--accent, #0071e3) 12%, transparent);
+    font-weight: 600;
+    color: var(--text, inherit);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="mb-4">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary">← Retour</a>
+    <h2 class="fw-semibold mb-0">📣 Email aux abonnés</h2>
+    <span class="badge bg-secondary ms-auto" id="recipient-badge">{{ counts.total }} destinataire(s)</span>
+  </div>
+
+  <div class="liquid-glass p-4" style="max-width:780px;">
+    <form method="POST" action="{{ url_for('admin.broadcast_email') }}" id="broadcast-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="html_content" id="html-content-field">
+      {# A4-M3 — large-broadcast confirmation. JS fills this with the
+         live recipient count immediately before submit; the server
+         enforces equality against its own count. #}
+      <input type="hidden" name="confirm_count" id="confirm-count-field" value="">
+
+      {# ── Destinataires ─────────────────────────────────────────────── #}
+      <div class="mb-4">
+        <label class="form-label fw-semibold">Destinataires</label>
+        <div class="d-flex flex-wrap gap-2 mt-1" id="plan-chips">
+          <label class="plan-chip">
+            <input type="checkbox" class="plan-toggle" data-plan="all" checked>
+            🌐 Tous <span class="text-muted fw-normal">({{ counts.total }})</span>
+          </label>
+          {% for plan_key, plan_name in plan_labels.items() %}
+          <label class="plan-chip">
+            <input type="checkbox" class="plan-toggle" data-plan="{{ plan_key }}">
+            {{ plan_name }} <span class="text-muted fw-normal">({{ counts[plan_key] }})</span>
+          </label>
+          {% endfor %}
+        </div>
+        <div id="plan-inputs"></div>
+        <p class="text-muted small mt-2 mb-0">
+          Chaque email inclut un lien de désabonnement personnalisé.
+        </p>
+      </div>
+
+      {# ── Sujet ─────────────────────────────────────────────────────── #}
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Sujet *</label>
+        <input type="text" name="subject" class="form-control rounded" required maxlength="200"
+               placeholder="Ex : Nouveautés Myeline — Mai 2025">
+      </div>
+
+      {# ── Éditeur WYSIWYG ───────────────────────────────────────────── #}
+      <div class="mb-4">
+        <label class="form-label fw-semibold">Contenu *</label>
+        <div id="quill-editor"></div>
+      </div>
+
+      <div class="d-flex gap-2 flex-wrap">
+        <button type="submit" class="btn btn-primary rounded px-4" id="send-btn">
+          📤 Envoyer à <span id="send-count">{{ counts.total }}</span> abonné(s)
+        </button>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary rounded">Annuler</a>
+      </div>
+    </form>
+  </div>
+
+<script src="{{ url_for('static', filename='vendor/quill/quill.min.js') }}"></script>
+<script nonce="{{ csp_nonce() }}">
+  // ── Quill setup ──────────────────────────────────────────────────────────
+  const quill = new Quill('#quill-editor', {
+    theme: 'snow',
+    placeholder: 'Rédigez votre message ici…',
+    modules: {
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link', 'blockquote'],
+        [{ color: [] }],
+        ['clean']
+      ]
+    }
+  });
+
+  // ── Plan filter ──────────────────────────────────────────────────────────
+  const COUNTS = {{ counts | tojson }};
+  const chips   = document.querySelectorAll('.plan-toggle');
+  const allChip = document.querySelector('[data-plan="all"]');
+  const planChips = document.querySelectorAll('.plan-toggle:not([data-plan="all"])');
+  const badge   = document.getElementById('recipient-badge');
+  const sendCount = document.getElementById('send-count');
+  const planInputs = document.getElementById('plan-inputs');
+
+  function syncUI() {
+    let total = 0;
+    let selected = [];
+    if (allChip.checked) {
+      total = COUNTS.total;
+      selected = ['all'];
+    } else {
+      planChips.forEach(cb => {
+        if (cb.checked) { total += COUNTS[cb.dataset.plan] || 0; selected.push(cb.dataset.plan); }
+      });
+      if (selected.length === 0) { allChip.checked = true; total = COUNTS.total; selected = ['all']; }
+    }
+    badge.textContent = total + ' destinataire(s)';
+    sendCount.textContent = total;
+    planInputs.innerHTML = '';
+    selected.forEach(p => {
+      const inp = document.createElement('input');
+      inp.type = 'hidden'; inp.name = 'plans'; inp.value = p;
+      planInputs.appendChild(inp);
+    });
+  }
+
+  allChip.addEventListener('change', () => {
+    if (allChip.checked) planChips.forEach(cb => cb.checked = false);
+    syncUI();
+  });
+  planChips.forEach(cb => cb.addEventListener('change', () => {
+    if (cb.checked) allChip.checked = false;
+    syncUI();
+  }));
+  syncUI();
+
+  // ── Form submit ──────────────────────────────────────────────────────────
+  document.getElementById('broadcast-form').addEventListener('submit', function(e) {
+    const html = quill.root.innerHTML.trim();
+    if (html === '<p><br></p>' || html === '') {
+      e.preventDefault();
+      alert('Le contenu de l\'email est vide.');
+      return;
+    }
+    document.getElementById('html-content-field').value = html;
+    const n = sendCount.textContent;
+    // A4-M3 — wire the live count into the hidden confirm_count field so
+    // the server-side check passes. A mismatched value (manual tamper
+    // or stale page) gets rejected by Flask with a clear flash.
+    document.getElementById('confirm-count-field').value = n;
+    if (!confirm(`Confirmer l'envoi à ${n} abonné(s) ?`)) e.preventDefault();
+  });
+</script>
+{% endblock %}

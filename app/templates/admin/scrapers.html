@@ -1,0 +1,189 @@
+{% extends 'base/base.html' %}
+{% block title %}Scrapers{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-semibold mb-0">🔍 Gestion des scrapers</h2>
+    <a href="{{ url_for('admin.tools_dashboard') }}" class="btn btn-outline-secondary btn-sm">← Outils</a>
+  </div>
+
+  <div id="alert-container"></div>
+
+  <div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Sources de données ({{ scrapers|length }})</h5>
+      <small id="last-refresh" class="opacity-75"></small>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width:220px">Scraper</th>
+              <th>Statut</th>
+              <th>Dernière exécution</th>
+              <th>Durée</th>
+              <th>Erreur</th>
+              <th style="width:120px">Action</th>
+            </tr>
+          </thead>
+          <tbody id="scrapers-tbody">
+            {% for s in scrapers %}
+            <tr id="row-{{ s.name }}">
+              <td class="fw-semibold font-monospace">{{ s.name }}</td>
+              <td id="status-{{ s.name }}">
+                {% if s.running %}
+                  <span class="badge bg-warning text-dark">⏳ En cours</span>
+                {% elif s.status == 'ok' %}
+                  <span class="badge bg-success">✅ OK</span>
+                {% elif s.status == 'error' %}
+                  <span class="badge bg-danger">❌ Erreur</span>
+                {% else %}
+                  <span class="badge bg-secondary">— Jamais exécuté</span>
+                {% endif %}
+              </td>
+              <td id="lastrun-{{ s.name }}" class="text-muted small">
+                {% if s.last_run %}{{ s.last_run[:19].replace('T', ' ') }}{% else %}—{% endif %}
+              </td>
+              <td id="duration-{{ s.name }}" class="text-muted small">
+                {% if s.duration %}{{ s.duration }}s{% else %}—{% endif %}
+              </td>
+              <td id="error-{{ s.name }}" class="text-danger small text-truncate" style="max-width:250px" title="{{ s.error or '' }}">
+                {{ s.error or '' }}
+              </td>
+              <td>
+                {# Bug X6 — data-scraper-name + listener global. #}
+                <button
+                  id="btn-{{ s.name }}"
+                  class="btn btn-sm btn-outline-primary js-run-scraper"
+                  data-scraper-name="{{ s.name }}"
+                  {% if s.running or not s.exists %}disabled{% endif %}>
+                  {% if s.running %}⏳{% else %}▶️ Relancer{% endif %}
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+const CSRF = '{{ csrf_token() }}';
+let pollTimer = null;
+
+function showAlert(msg, type) {
+  const div = document.getElementById('alert-container');
+  div.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+    ${msg}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>`;
+}
+
+function runScraper(name) {
+  const btn = document.getElementById('btn-' + name);
+  btn.disabled = true;
+  btn.textContent = '⏳';
+
+  fetch(`/admin/scrapers/run/${name}`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById('status-' + name).innerHTML =
+        '<span class="badge bg-warning text-dark">⏳ En cours</span>';
+      startPolling();
+    } else {
+      showAlert(data.message, 'danger');
+      btn.disabled = false;
+      btn.textContent = '▶️ Relancer';
+    }
+  })
+  .catch(() => {
+    showAlert('Erreur réseau', 'danger');
+    btn.disabled = false;
+    btn.textContent = '▶️ Relancer';
+  });
+}
+
+function startPolling() {
+  if (pollTimer) return;
+  pollTimer = setInterval(refreshStatus, 3000);
+}
+
+function stopPolling() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+function refreshStatus() {
+  fetch('/admin/scrapers/status')
+    .then(r => r.json())
+    .then(data => {
+      const running = new Set(data.running);
+      let anyRunning = running.size > 0;
+
+      for (const [name, info] of Object.entries(data.status)) {
+        const statusEl = document.getElementById('status-' + name);
+        const lastrunEl = document.getElementById('lastrun-' + name);
+        const durationEl = document.getElementById('duration-' + name);
+        const errorEl = document.getElementById('error-' + name);
+        const btn = document.getElementById('btn-' + name);
+        if (!statusEl) continue;
+
+        const isRunning = running.has(name);
+        if (isRunning) {
+          statusEl.innerHTML = '<span class="badge bg-warning text-dark">⏳ En cours</span>';
+          if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+        } else {
+          if (info.status === 'ok') {
+            statusEl.innerHTML = '<span class="badge bg-success">✅ OK</span>';
+          } else {
+            statusEl.innerHTML = '<span class="badge bg-danger">❌ Erreur</span>';
+          }
+          if (btn) { btn.disabled = false; btn.textContent = '▶️ Relancer'; }
+        }
+        if (lastrunEl && info.last_run) {
+          lastrunEl.textContent = info.last_run.slice(0, 19).replace('T', ' ');
+        }
+        if (durationEl && info.duration) {
+          durationEl.textContent = info.duration + 's';
+        }
+        if (errorEl) {
+          errorEl.textContent = info.error || '';
+          errorEl.title = info.error || '';
+        }
+      }
+
+      // Also mark currently-running scrapers not yet in status file
+      for (const name of running) {
+        const statusEl = document.getElementById('status-' + name);
+        const btn = document.getElementById('btn-' + name);
+        if (statusEl) statusEl.innerHTML = '<span class="badge bg-warning text-dark">⏳ En cours</span>';
+        if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+      }
+
+      document.getElementById('last-refresh').textContent =
+        'Actualisé ' + new Date().toLocaleTimeString('fr-FR');
+
+      if (!anyRunning) stopPolling();
+    })
+    .catch(() => {});
+}
+
+// Auto-start polling if any scraper is already running on page load
+{% if scrapers | selectattr('running') | list %}
+startPolling();
+{% endif %}
+
+// Bug X6 — wire les boutons via addEventListener (CSP3 nonce).
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.js-run-scraper').forEach(btn => {
+    btn.addEventListener('click', () => runScraper(btn.dataset.scraperName));
+  });
+});
+</script>
+{% endblock %}

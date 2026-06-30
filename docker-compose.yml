@@ -1,0 +1,367 @@
+x-podman:
+  # podman-compose puts every service in a single pod by default, which
+  # makes them share one network namespace and defeats the data-net /
+  # ai-net split below. Disabling pod mode gives each service its own
+  # namespace so the network segmentation is actually enforced.
+  in_pod: false
+
+services:
+  web:
+    # ┌───────────────────────────────────────────────────────────────────┐
+    # │ Image source : pull depuis le registry public GHCR, tag piloté par │
+    # │ MYELINE_VERSION dans .env (ex: MYELINE_VERSION=v2.0.21). Pour dev   │
+    # │ local, commente la ligne image: et active build: .                 │
+    # └───────────────────────────────────────────────────────────────────┘
+    # Self-host: build the image locally (`podman-compose up -d --build`).
+    # To pull a prebuilt image instead, comment `build:` and set MYELINE_VERSION.
+    build: .
+    image: ghcr.io/claravnk/myeline:${MYELINE_VERSION:-latest}
+    environment:
+      # — Environnement -------------------------------------------------------
+      - FLASK_ENV=production        # pilote reCAPTCHA, rate-limiting, cookies
+      - FLASK_DEBUG=false
+      # — Secrets -------------------------------------------------------------
+      - SECRET_KEY=${SECRET_KEY}
+      # — Base de données -----------------------------------------------------
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://${MYSQL_USER:-myeline_user}:${MYSQL_PASSWORD}@mariadb:3306/${MYSQL_DATABASE:-myeline}
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER:-myeline_user}:${MYSQL_PASSWORD}@mariadb:3306/${MYSQL_DATABASE:-myeline}
+      # — Emails ---------------------------------------------------------------
+      - BREVO_API_KEY=${BREVO_API_KEY}
+      - MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER:-hello@myeline.io}
+      - MAIL_SENDER_NAME=${MAIL_SENDER_NAME:-Myeline}
+      - DEV_EMAIL=${DEV_EMAIL}
+      # — Sécurité -------------------------------------------------------------
+      - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY}
+      - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY}
+      # — Infrastructure -------------------------------------------------------
+      - REDIS_URL=redis://redis:6379/0
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - MISTRAL_LLM_MODEL=${MISTRAL_LLM_MODEL:-mistral-medium-latest}
+      - MISTRAL_AUX_MODEL=${MISTRAL_AUX_MODEL:-mistral-small-latest}
+      - OLLAMA_URL=http://ollama:11434
+      - MOCK_IMAP=${MOCK_IMAP:-false}
+      # CSV of emails exempt from mandatory 2FA — OAuth-review accounts
+      # (Google / Microsoft / Dropbox app validation). Empty in production.
+      - BYPASS_2FA_EMAILS=${BYPASS_2FA_EMAILS:-}
+      # — OAuth providers (cloud connectors + social login) ------------------
+      # Without these, Flask sees None for the credentials and the IdP
+      # returns 401 invalid_client at the first /authorize call.
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - ONEDRIVE_CLIENT_ID=${ONEDRIVE_CLIENT_ID:-}
+      - ONEDRIVE_CLIENT_SECRET=${ONEDRIVE_CLIENT_SECRET:-}
+      - DROPBOX_APP_KEY=${DROPBOX_APP_KEY:-}
+      - DROPBOX_APP_SECRET=${DROPBOX_APP_SECRET:-}
+      - KDRIVE_CLIENT_ID=${KDRIVE_CLIENT_ID:-}
+      - KDRIVE_CLIENT_SECRET=${KDRIVE_CLIENT_SECRET:-}
+      - NOTION_CLIENT_ID=${NOTION_CLIENT_ID:-}
+      - NOTION_CLIENT_SECRET=${NOTION_CLIENT_SECRET:-}
+      # Social login (classic SaaS only — sovereign disables it at the
+      # routing layer regardless of these values being set).
+      - GOOGLE_LOGIN_CLIENT_ID=${GOOGLE_LOGIN_CLIENT_ID:-}
+      - GOOGLE_LOGIN_CLIENT_SECRET=${GOOGLE_LOGIN_CLIENT_SECRET:-}
+      - MICROSOFT_LOGIN_CLIENT_ID=${MICROSOFT_LOGIN_CLIENT_ID:-}
+      - MICROSOFT_LOGIN_CLIENT_SECRET=${MICROSOFT_LOGIN_CLIENT_SECRET:-}
+      - APPLE_LOGIN_CLIENT_ID=${APPLE_LOGIN_CLIENT_ID:-}
+      - APPLE_LOGIN_TEAM_ID=${APPLE_LOGIN_TEAM_ID:-}
+      - APPLE_LOGIN_KEY_ID=${APPLE_LOGIN_KEY_ID:-}
+      - APPLE_LOGIN_PRIVATE_KEY=${APPLE_LOGIN_PRIVATE_KEY:-}
+      # OAuth redirect base — must match the public URL of this instance.
+      # Required so the IdP redirects back to the correct host even when
+      # the request hits via an internal IP / reverse proxy.
+      - OAUTH_REDIRECT_BASE_URL=${OAUTH_REDIRECT_BASE_URL:-}
+      # — Crypto / sécurité (Fernet, password hashing) -----------------------
+      - SECURITY_PASSWORD_SALT=${SECURITY_PASSWORD_SALT}
+      - CLOUD_TOKEN_KEY=${CLOUD_TOKEN_KEY}
+    volumes:
+      - ./uploads:/app/uploads:z         # cartes étudiantes (bind mount — persiste)
+      - ./data:/app/data:z               # cache scrapers (bind mount — persiste)
+      - ./logs:/app/logs:z               # logs applicatifs (bind mount — persiste)
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # Read-only root FS — all writes go to the mounted volumes
+    # (uploads/data/logs) or tmpfs. Validated: gunicorn boots and serves
+    # /healthz with no "Read-only file system" errors.
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /dev/shm
+    # Loopback-only. Put a TLS-terminating reverse proxy (nginx/caddy/
+    # Traefik) in front of 127.0.0.1:5000 to serve the app publicly.
+    # Publishing on 0.0.0.0 would expose the app in clear HTTP on the
+    # host public IP, bypassing TLS.
+    ports:
+      - "127.0.0.1:5000:5000"
+    # Bug C-H2 (audit round 3) — resource limits pour empêcher un
+    # tenant compromis (ou un ollama hangé sur un prompt empoisonné)
+    # de saturer le host. Override possible via env si les valeurs
+    # par défaut sont trop basses pour le volume de prod.
+    mem_limit: ${WEB_MEM_LIMIT:-2g}
+    cpus: ${WEB_CPU_LIMIT:-2.0}
+    pids_limit: ${WEB_PIDS_LIMIT:-300}
+    # Bug C-L1 (audit round 3) — split réseau pour limiter le rayon
+    # d'un RCE :
+    #   - data-net : mariadb + redis (clients : web, cron, worker)
+    #   - ai-net   : ollama         (clients : web, cron, worker)
+    # Un compromis dans ollama ne peut plus toucher mariadb/redis ; un
+    # compromis dans redis ne peut plus parler à ollama ; etc.
+    networks:
+      - data-net
+      - ai-net
+
+  cron:
+    # Periodic scheduler — same image as web, runs supercronic against
+    # the versioned crontab. Without this service none of the
+    # scheduled jobs (backups, status sampling, quotas, digests…)
+    # ever fire in production.
+    build: .
+    image: ghcr.io/claravnk/myeline:${MYELINE_VERSION:-latest}
+    command: supercronic /app/scripts/crontab
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /dev/shm
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - FLASK_DEBUG=false
+      - SECRET_KEY=${SECRET_KEY}
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://${MYSQL_USER:-myeline_user}:${MYSQL_PASSWORD}@mariadb:3306/${MYSQL_DATABASE:-myeline}
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER:-myeline_user}:${MYSQL_PASSWORD}@mariadb:3306/${MYSQL_DATABASE:-myeline}
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_URL=http://ollama:11434
+      - BREVO_API_KEY=${BREVO_API_KEY}
+      - MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER:-hello@myeline.io}
+      - MAIL_SENDER_NAME=${MAIL_SENDER_NAME:-Myeline}
+      - DEV_EMAIL=${DEV_EMAIL}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - MISTRAL_LLM_MODEL=${MISTRAL_LLM_MODEL:-mistral-medium-latest}
+      - MISTRAL_AUX_MODEL=${MISTRAL_AUX_MODEL:-mistral-small-latest}
+      - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY:-}
+      - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY:-}
+      - CLOUD_TOKEN_KEY=${CLOUD_TOKEN_KEY}
+      - SECURITY_PASSWORD_SALT=${SECURITY_PASSWORD_SALT}
+      - AUDIT_S3_BUCKET=${AUDIT_S3_BUCKET:-}
+      - AUDIT_S3_ENDPOINT=${AUDIT_S3_ENDPOINT:-}
+      - AUDIT_S3_REGION=${AUDIT_S3_REGION:-eu-west-3}
+      - AUDIT_S3_ACCESS_KEY=${AUDIT_S3_ACCESS_KEY:-}
+      - AUDIT_S3_SECRET_KEY=${AUDIT_S3_SECRET_KEY:-}
+      # Off-host backup target for the backup_databases cron — rclone
+      # remote name + path. e.g. BACKUP_REMOTE=gdrive:myeline-backups
+      # Leave empty to keep backups local-only.
+      - BACKUP_REMOTE=${BACKUP_REMOTE:-}
+    volumes:
+      - ./uploads:/app/uploads:z
+      - ./data:/app/data:z
+      - ./logs:/app/logs:z
+      - /etc/localtime:/etc/localtime:ro
+      # SECURITY (audit C-3 / H-1): no host socket is mounted here. The
+      # cron sidecar runs `check_user_scrapers` which fetches arbitrary
+      # user-supplied URLs — combined with a parser bug in feedparser/lxml,
+      # RCE in this container must not be able to reach the host.
+      # rclone config — populated once on the host with `rclone config`,
+      # mounted read-only here so the cron can use it for the off-host
+      # backup sync. Leave the default if you don't want off-host sync.
+      - ${RCLONE_CONFIG_PATH:-./data/rclone.conf}:/home/appuser/.config/rclone/rclone.conf:ro,z
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    # Bug C-H2 — resource limits (cf. web).
+    mem_limit: ${CRON_MEM_LIMIT:-1g}
+    cpus: ${CRON_CPU_LIMIT:-1.0}
+    pids_limit: ${CRON_PIDS_LIMIT:-200}
+    # Bug C-L1 — split réseau (cf. web). cron a besoin de data + ai.
+    networks:
+      - data-net
+      - ai-net
+
+  worker:
+    build: .
+    image: ghcr.io/claravnk/myeline:${MYELINE_VERSION:-latest}
+    command: rq worker --url redis://redis:6379/0 myeline-pro myeline
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /dev/shm
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=false
+      - SECRET_KEY=${SECRET_KEY}
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://${MYSQL_USER:-myeline_user}:${MYSQL_PASSWORD}@mariadb:3306/${MYSQL_DATABASE:-myeline}
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER:-myeline_user}:${MYSQL_PASSWORD}@mariadb:3306/${MYSQL_DATABASE:-myeline}
+      - BREVO_API_KEY=${BREVO_API_KEY}
+      - MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER:-hello@myeline.io}
+      - MAIL_SENDER_NAME=${MAIL_SENDER_NAME:-Myeline}
+      - DEV_EMAIL=${DEV_EMAIL}
+      - RECAPTCHA_SITE_KEY=${RECAPTCHA_SITE_KEY}
+      - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY}
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_URL=http://ollama:11434
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - MISTRAL_LLM_MODEL=${MISTRAL_LLM_MODEL:-mistral-medium-latest}
+      - MISTRAL_AUX_MODEL=${MISTRAL_AUX_MODEL:-mistral-small-latest}
+      - SECURITY_PASSWORD_SALT=${SECURITY_PASSWORD_SALT}
+      - CLOUD_TOKEN_KEY=${CLOUD_TOKEN_KEY}
+    volumes:
+      - ./uploads:/app/uploads:z
+      - ./data:/app/data:z
+      - ./logs:/app/logs:z
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    # Bug C-H2 — worker plus généreux en RAM (chargement modèles).
+    mem_limit: ${WORKER_MEM_LIMIT:-2g}
+    cpus: ${WORKER_CPU_LIMIT:-2.0}
+    pids_limit: ${WORKER_PIDS_LIMIT:-200}
+    # Bug C-L4 — healthcheck : ping Redis via le module Python déjà
+    # installé (redis-cli n'est pas dans l'image runtime). Détecte un
+    # worker RQ qui a perdu sa connexion Redis sans crasher.
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import os, redis; redis.from_url(os.environ[\"REDIS_URL\"]).ping()' || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    # Bug C-L1 — worker n'a besoin que de data + ai.
+    networks:
+      - data-net
+      - ai-net
+
+  mariadb:
+    image: docker.io/library/mariadb:10.11@sha256:407fccb51e710f34752c1a3ef9b936d1f55f38d4ac7fa043b3759742d266fd9a
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-myeline}
+      - MYSQL_USER=${MYSQL_USER:-myeline_user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - ./data/mysql:/var/lib/mysql:z    # bind mount — résistant à docker compose down -v
+      - ./scripts/init-mariadb.sql:/docker-entrypoint-initdb.d/01-init-mariadb.sql:ro,z
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # MariaDB's entrypoint drops root -> mysql and fixes data-dir ownership;
+    # these are the minimal caps that privilege-drop path needs.
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    # Bug C-H2 — MariaDB peut grossir sous charge ; valeurs par défaut
+    # généreuses (override possible via env).
+    mem_limit: ${MARIADB_MEM_LIMIT:-2g}
+    cpus: ${MARIADB_CPU_LIMIT:-2.0}
+    pids_limit: ${MARIADB_PIDS_LIMIT:-300}
+    # Bug C-L1 — data-net seul, plus joignable depuis ollama.
+    networks:
+      - data-net
+
+  redis:
+    image: docker.io/library/redis:7-alpine@sha256:7aec734b2bb298a1d769fd8729f13b8514a41bf90fcdd1f38ec52267fbaa8ee6
+    command: redis-server --save "" --appendonly no
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # redis-alpine's entrypoint drops root -> redis via su-exec, which needs
+    # these two caps.
+    cap_add:
+      - SETGID
+      - SETUID
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    # Bug C-H2 — Redis sans persistance, footprint léger.
+    mem_limit: ${REDIS_MEM_LIMIT:-512m}
+    cpus: ${REDIS_CPU_LIMIT:-0.5}
+    pids_limit: ${REDIS_PIDS_LIMIT:-100}
+    # Bug C-L1 — data-net seul.
+    networks:
+      - data-net
+
+  ollama:
+    # Bug C-H1 — pin SHA digest (image immuable, re-générer au bump).
+    image: docker.io/ollama/ollama@sha256:7db82c93ff9fae4011a2aa10931b1d2c2a228d508b8736366e3fbaee616b2e8c
+    environment:
+      # Passed to ollama-init.sh so model pulls stay in sync with rag_service.py
+      - OLLAMA_EMBED_MODEL=${OLLAMA_EMBED_MODEL:-bge-m3}
+      - OLLAMA_LLM_MODEL=${OLLAMA_LLM_MODEL:-mistral-nemo}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - MISTRAL_LLM_MODEL=${MISTRAL_LLM_MODEL:-mistral-medium-latest}
+      - MISTRAL_AUX_MODEL=${MISTRAL_AUX_MODEL:-mistral-small-latest}
+    volumes:
+      - ./data/ollama:/root/.ollama:z
+      - ./scripts/ollama-init.sh:/init.sh:ro,z
+    entrypoint: ["/bin/sh", "/init.sh"]
+    healthcheck:
+      # The ollama image ships without curl/wget — use the built-in
+      # CLI which is always present and only succeeds once the daemon
+      # is reachable on its own port.
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+    restart: unless-stopped
+    # Bug C-H2 — Ollama est le service le plus gourmand (modèles
+    # chargés en RAM). Valeurs par défaut adaptées à un host petit ;
+    # override OLLAMA_MEM_LIMIT=8g pour les hosts avec GPU/RAM.
+    mem_limit: ${OLLAMA_MEM_LIMIT:-4g}
+    cpus: ${OLLAMA_CPU_LIMIT:-4.0}
+    pids_limit: ${OLLAMA_PIDS_LIMIT:-200}
+    # Bug C-L1 — ai-net seul. Un RCE prompt-injection dans ollama ne
+    # peut plus toucher mariadb/redis.
+    networks:
+      - ai-net
+
+networks:
+  # Bug C-L1 (audit round 3) — splits réseau pour limiter le rayon
+  # de blast d'une RCE container.
+  data-net:
+    driver: bridge
+    internal: true   # mariadb + redis + clients (web, cron, worker)
+  ai-net:
+    driver: bridge
+    # NOT internal — ollama doit pouvoir pull les modèles depuis Internet
+    # au boot (cf. scripts/ollama-init.sh : `ollama pull bge-m3`). Sert
+    # aussi d'egress aux services web/cron/worker (Mistral, Brevo, OAuth).
+    # Le risque résiduel d'exfil via ollama compromis reste mais est
+    # bordé : mariadb/redis ne sont plus joignables depuis ai-net.

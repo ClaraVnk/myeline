@@ -1,0 +1,56 @@
+{% extends "base/base.html" %}
+{% block title %}{{ result.query }} — Myeline{% endblock %}
+{% block content %}
+<div class="mx-auto py-4" style="max-width:760px;">
+
+  <div class="mb-4">
+    <p class="text-muted small mb-1">
+      <i class="bi bi-share me-1"></i>{{ _("Shared result") }} · {{ result.created_at.strftime('%d/%m/%Y') }}
+    </p>
+    <h1 class="fw-bold mb-0" style="font-size:clamp(1.3rem,3vw,2rem);">{{ result.query }}</h1>
+  </div>
+
+  <div class="liquid-glass p-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <h6 class="fw-semibold mb-0"><i class="bi bi-robot me-2" style="color:var(--accent);"></i>{{ _("Summary") }}</h6>
+      {% if result.confidence %}
+        {% set bg = "#34c759" if result.confidence >= 75 else ("#ff9500" if result.confidence >= 50 else "#ff3b30") %}
+        <span class="badge px-3 py-2" style="background:{{ bg }};color:#fff;font-size:.8rem;">
+          {{ result.confidence }}% {{ _("confidence") }}
+        </span>
+      {% endif %}
+    </div>
+    <p style="line-height:1.7;white-space:pre-wrap;">{{ result.answer }}</p>
+  </div>
+
+  {% if result.sources %}
+  <h6 class="fw-semibold text-muted mb-3">{{ _("Sources") }}</h6>
+  {% for src in result.sources %}
+    <div class="liquid-glass p-3 mb-2 d-flex align-items-start gap-3">
+      {% set src_bg = "#34c759" if src.relevance >= 75 else ("#ff9500" if src.relevance >= 50 else "#ff3b30") %}
+      <span class="badge flex-shrink-0 mt-1" style="background:{{ src_bg }};color:#fff;font-size:.75rem;">
+        {{ src.relevance }}%
+      </span>
+      <div>
+        <p class="mb-0 fw-medium" style="font-size:.9rem;">{{ src.section_title or src.titre or src.display_title or "" }}</p>
+        {% set subtitle = src.newsletter_title or src.source or "" %}
+        {% if subtitle %}
+          <p class="mb-0 text-muted" style="font-size:.8rem;">
+            {% if src.lien %}<a href="{{ src.lien | safe_url }}" target="_blank" rel="noopener" class="text-decoration-none">{{ subtitle }}</a>{% else %}{{ subtitle }}{% endif %}
+            {% if src.date %} · {{ src.date }}{% endif %}
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+  {% endif %}
+
+  <div class="text-center mt-5 pt-3 border-top">
+    <p class="text-muted mb-3">{{ _("Ask your own questions on Myeline.") }}</p>
+    <a href="{{ url_for('home.welcome_page') }}" class="btn btn-primary px-4">
+      {{ _("Try Myeline") }}
+    </a>
+  </div>
+
+</div>
+{% endblock %}

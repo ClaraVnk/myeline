@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="{{ get_locale() }}" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}?v=2">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='android-chrome-192x192.png') }}?v=2">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}?v=2">
+    <title>{% block title %}Myeline{% endblock %}</title>
+    {# Audit round 4 — A4-L2 (debt). All third-party CSS / JS libs are
+       now self-hosted under /static/vendor/. Previously only Sovereign
+       / on-prem deployments used the local copies; SaaS classic still
+       hit cdn.jsdelivr.net + fonts.googleapis.com, leaking user
+       metadata to third parties and depending on the CDN's uptime +
+       integrity. Self-hosting eliminates both risks at the cost of a
+       few hundred KB shipped in the image.
+
+       Inter font intentionally not bundled — falls back to the system
+       sans-serif stack via style.css (-apple-system / BlinkMacSystemFont
+       / Segoe UI). Visually almost identical on every modern OS and
+       saves ~250 KB of woff2 + every-request fonts.gstatic.com leak. #}
+    <link href="{{ url_for('static', filename='vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/select2/select2.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {# Bug X11 (audit round 3) — util.js expose escHtml + safeUrlJs
+       globalement. Chargé en tête pour être dispo dans tous les
+       <script nonce> qui suivent (first-party, pas de SRI nécessaire). #}
+    <script src="{{ url_for('static', filename='js/util.js') }}"></script>
+    {% block head %}{% endblock %}
+    <meta property="og:title" content="Myeline – {{ _('Self-hosted bibliographic watch & RAG.') }}">
+    <meta property="og:description" content="{{ _('Index your sources (RSS, cloud, library) and query them in natural language with citations. Multi-LLM BYOK or fully local via Ollama — everything stays on your own server.') }}">
+    <meta property="og:image" content="{{ url_for('static', filename='logo.png', _external=True) }}">
+    <meta property="og:url" content="{{ url_for('home.welcome_page', _external=True) }}">
+    <meta property="og:type" content="website">
+</head>
+
+{% if request.cookies.get("cookie_consent") not in ["accepted", "rejected"] %}
+<div id="cookie-banner" style="position:fixed;bottom:0;left:0;right:0;background:var(--surface);padding:1.5rem;box-shadow:0 -2px 10px rgba(0,0,0,.1);z-index:9999;border-top:3px solid var(--accent);">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8 mb-3 mb-lg-0">
+        <h5 class="mb-2">🍪 {{ _('Cookie settings') }}</h5>
+        <p class="mb-2 small">{{ _('This site uses <strong>essential cookies</strong> for operation and <strong>analytics cookies</strong> (Google Analytics) to improve your experience.') }}</p>
+        <p class="mb-0 small text-muted">
+          {{ _('You can accept all cookies or decline non-essential ones.') }}
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+          {# Bug X6 (audit round 3) — inline onclick refusé par CSP3 nonce.
+             id + addEventListener dans le script nonce ci-dessous. #}
+          <button id="cookie-accept-btn" type="button" class="btn btn-primary btn-sm px-4">✅ {{ _('Accept all') }}</button>
+          <button id="cookie-reject-btn" type="button" class="btn btn-outline-secondary btn-sm px-4">🚫 {{ _('Decline non-essential') }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script nonce="{{ csp_nonce() }}">
+  // Bug M15 — POST + CSRF (Flask-WTF) au lieu de GET. Empêche un préfetch
+  // ou <img> tiers de déclencher le consentement à la place de l'utilisateur.
+  const _csrf = "{{ csrf_token() }}";
+  function _consent(url) {
+    fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'X-CSRFToken': _csrf},
+    }).then(r => {
+      if (r.ok) {
+        document.getElementById("cookie-banner").style.display = "none";
+        window.location.reload();
+      }
+    });
+  }
+  function acceptCookies() { _consent("/accept-cookies"); }
+  function rejectCookies() { _consent("/reject-cookies"); }
+  // Bug X6 — bind via addEventListener (CSP3 nonce-only mode bloque les
+  // onclick inline ; le banner ne ferait rien sinon, impact RGPD).
+  document.addEventListener("DOMContentLoaded", function() {
+    var a = document.getElementById("cookie-accept-btn");
+    var r = document.getElementById("cookie-reject-btn");
+    if (a) a.addEventListener("click", acceptCookies);
+    if (r) r.addEventListener("click", rejectCookies);
+  });
+</script>
+{% endif %}
+
+{# Bug X1 + X6 (audit round 3) — handlers globaux pour les confirmations
+   data-confirm sur forms ET boutons. Remplace les `onsubmit/onclick`
+   inline qui sont bloqués par CSP3 nonce-only mode et permettaient
+   une XSS via interpolation user-data. #}
+<script nonce="{{ csp_nonce() }}">
+  document.addEventListener("submit", function(ev) {
+    var f = ev.target;
+    if (!f.classList || !f.classList.contains("js-confirm-form")) return;
+    var msg = f.dataset.confirm;
+    if (msg && !window.confirm(msg)) {
+      ev.preventDefault();
+    }
+  });
+  // Bug X6 — version bouton (data-confirm-click). Si la confirmation est
+  // refusée, on bloque le click (utile sur des liens/<button type=button>
+  // qui ne sont pas dans un <form>).
+  document.addEventListener("click", function(ev) {
+    var t = ev.target.closest("[data-confirm-click]");
+    if (!t) return;
+    var msg = t.dataset.confirmClick;
+    if (msg && !window.confirm(msg)) {
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+  });
+</script>
+
+<body class="d-flex flex-column min-vh-100">
+  <header class="border-bottom sticky-top shadow-sm" style="background:var(--surface);">
+    <nav class="navbar navbar-expand-lg py-2">
+      <div class="container">
+
+        <!-- Logo -->
+        <a href="{{ url_for('home.welcome_page') }}" class="navbar-brand fw-semibold fs-5 d-flex align-items-center p-0 me-3" style="color:var(--text-primary);">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="Myeline" style="height:2rem;border-radius:50%;" class="me-2">
+          myeline<span style="color:#3ab4cc;">.io</span>
+        </a>
+
+        <!-- Controls always visible (right-side strip) -->
+        <div class="d-flex align-items-center gap-2 ms-auto order-md-last">
+          {% if not current_user.is_authenticated %}
+            {# Mobile: square icon-only buttons (icon centred via flex);
+               sm and up: full label appears next to the icon. Bootstrap
+               Icons rather than emoji so the meaning is universal. #}
+            <a href="{{ url_for('auth.register') }}"
+               class="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center"
+               title="{{ _('Create an account') }}"
+               aria-label="{{ _('Create an account') }}"
+               style="min-width:34px;height:34px;padding:0 .55rem;">
+              <i class="bi bi-person-plus" style="font-size:1rem;"></i>
+              <span class="d-none d-sm-inline ms-2">{{ _('Create an account') }}</span>
+            </a>
+            <a href="{{ url_for('auth.login') }}"
+               class="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center"
+               title="{{ _('Log in') }}"
+               aria-label="{{ _('Log in') }}"
+               style="min-width:34px;height:34px;padding:0 .55rem;">
+              <i class="bi bi-box-arrow-in-right" style="font-size:1rem;"></i>
+              <span class="d-none d-sm-inline ms-2">{{ _('Log in') }}</span>
+            </a>
+            <span class="vr d-none d-sm-inline" style="opacity:.3;"></span>
+          {% endif %}
+          <span class="vr" style="opacity:.3;"></span>
+          <!-- Dark/light toggle -->
+          <button id="theme-toggle" class="btn btn-sm btn-icon" aria-label="{{ _('Toggle dark mode') }}"
+                  style="background:none;border:none;font-size:1.15rem;line-height:1;color:var(--text-muted);">
+            <i class="bi bi-moon-stars-fill" id="theme-icon"></i>
+          </button>
+          {% if current_user.is_authenticated %}
+          <span class="vr" style="opacity:.3;"></span>
+          <!-- User avatar dropdown -->
+          <div class="dropdown">
+            {% set _initial = (current_user.firstname or current_user.email)[0].upper() %}
+            <button class="btn btn-sm d-flex align-items-center gap-2" type="button"
+                    data-bs-toggle="dropdown" aria-expanded="false"
+                    style="background:var(--surface-raised);border:1px solid var(--border-color);border-radius:20px;padding:.25rem .55rem .25rem .35rem;">
+              <span style="width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:.72rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">{{ _initial }}</span>
+              <i class="bi bi-chevron-down d-none d-md-inline" style="font-size:.6rem;opacity:.5;"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:200px;">
+              <li class="px-3 pt-2 pb-1">
+                <div class="small fw-semibold">{{ current_user.firstname or current_user.email.split('@')[0] }}</div>
+                <div class="text-muted" style="font-size:.75rem;word-break:break-all;">{{ current_user.email }}</div>
+              </li>
+              <li><hr class="dropdown-divider my-1"></li>
+              <li><a class="dropdown-item small" href="{{ url_for('user_tickets.ticket_list') }}"><i class="bi bi-headset me-2"></i>{{ _('Support') }}</a></li>
+              <li><a class="dropdown-item small" href="{{ url_for('user.account_settings') }}"><i class="bi bi-gear me-2"></i>{{ _('Settings') }}</a></li>
+              <li><hr class="dropdown-divider my-1"></li>
+              <li><a class="dropdown-item small" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>{{ _('Log out') }}</a></li>
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if current_user.is_authenticated %}
+          <button class="navbar-toggler border-0 shadow-none" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#mainNav"
+                  aria-controls="mainNav" aria-expanded="false" aria-label="{{ _('Open menu') }}">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <div class="collapse navbar-collapse" id="mainNav">
+            <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-1 ms-md-auto mt-2 mt-md-0">
+
+              {% if current_user.is_admin %}
+                {% set ep = request.endpoint or '' %}
+                <a href="{{ url_for('admin.dashboard') }}"
+                   class="nav-link px-2 py-1 rounded-2 d-flex align-items-center gap-1{% if ep == 'admin.dashboard' %} active fw-semibold{% endif %}">
+                  <i class="bi bi-speedometer2"></i> Monitoring
+                </a>
+                <a href="{{ url_for('admin.manage_users') }}"
+                   class="nav-link px-2 py-1 rounded-2 d-flex align-items-center gap-1{% if ep == 'admin.manage_users' %} active fw-semibold{% endif %}">
+                  <i class="bi bi-people"></i> {{ _('Users') }}
+                </a>
+                {% if config.DEBUG %}
+                <span class="vr mx-1 d-none d-md-block" style="opacity:.35;"></span>
+                <span class="badge text-bg-warning d-none d-md-inline" style="font-size:.6rem;letter-spacing:.04em;vertical-align:middle;">DEV</span>
+                <a href="{{ url_for('user.dashboard') }}"
+                   class="nav-link px-2 py-1 rounded-2 d-flex align-items-center gap-1"
+                   title="Tableau de bord (vue utilisateur)" style="color:var(--bs-warning);">
+                  <i class="bi bi-house"></i>
+                </a>
+                <a href="{{ url_for('user_library.personal_library') }}"
+                   class="nav-link px-2 py-1 rounded-2 d-flex align-items-center gap-1"
+                   title="Bibliothèque personnelle" style="color:var(--bs-warning);">
+                  <i class="bi bi-journal-text"></i>
+                </a>
+                <a href="{{ url_for('user_scrapers.scraper_list') }}"
+                   class="nav-link px-2 py-1 rounded-2 d-flex align-items-center gap-1"
+                   title="Sources RSS" style="color:var(--bs-warning);">
+                  <i class="bi bi-rss"></i>
+                </a>
+                {% if not sovereign_mode %}
+                <a href="{{ url_for('user_cloud.cloud_connections') }}"
+                   class="nav-link px-2 py-1 rounded-2 d-flex align-items-center gap-1"
+                   title="Cloud" style="color:var(--bs-warning);">
+                  <i class="bi bi-cloud"></i>
+                </a>
+                {% endif %}
+                <a href="{{ url_for('user_tickets.ticket_list') }}"
+                   class="nav-link px-2 py-1 rounded-2 d-flex align-items-center gap-1"
+                   title="Support (vue utilisateur)" style="color:var(--bs-warning);">
+                  <i class="bi bi-ticket-perforated"></i>
+                </a>
+                <a href="{{ url_for('user.account_settings') }}"
+                   class="nav-link px-2 py-1 rounded-2 d-flex align-items-center gap-1"
+                   title="Paramètres (vue utilisateur)" style="color:var(--bs-warning);">
+                  <i class="bi bi-gear"></i>
+                </a>
+                {% endif %}
+
+              {% else %}
+                {% set is_blocked = (
+                    not current_user.is_confirmed or
+                    not current_user.is_subscriber
+                ) %}
+                {% if not is_blocked %}
+                  {% set ep = request.endpoint or '' %}
+                  <a href="{{ url_for('user.dashboard') }}"
+                     class="nav-link px-2 py-1 rounded-2 d-flex align-items-center gap-1{% if ep == 'user.dashboard' %} active fw-semibold{% endif %}">
+                    <i class="bi bi-house"></i> {{ _('Dashboard') }}
+                  </a>
+                  <a href="{{ url_for('user_library.personal_library') }}"
+                     class="nav-link px-2 py-1 rounded-2 d-flex align-items-center gap-1{% if ep == 'user_library.personal_library' %} active fw-semibold{% endif %}">
+                    <i class="bi bi-journal-text"></i> {{ _('My library') }}
+                  </a>
+                  {% if current_user.is_subscriber %}
+                  <a href="{{ url_for('user_scrapers.scraper_list') }}"
+                     class="nav-link px-2 py-1 rounded-2 d-flex align-items-center gap-1{% if ep == 'user_scrapers.scraper_list' %} active fw-semibold{% endif %}">
+                    <i class="bi bi-rss"></i> {{ _('My sources') }}
+                  </a>
+                  {% if not sovereign_mode %}
+                  <a href="{{ url_for('user_cloud.cloud_connections') }}"
+                     class="nav-link px-2 py-1 rounded-2 d-flex align-items-center gap-1{% if ep == 'user_cloud.cloud_connections' %} active fw-semibold{% endif %}">
+                    <i class="bi bi-cloud"></i> {{ _('Cloud') }}
+                  </a>
+                  {% endif %}
+                  {% endif %}
+                {% endif %}
+                <!-- Mobile-only: actions mirrored from the avatar dropdown -->
+                <div class="d-md-none mt-2 pt-2" style="border-top:1px solid var(--border-color);">
+                  <a href="{{ url_for('user_tickets.ticket_list') }}" class="nav-link px-2 py-1 rounded-2 small d-flex align-items-center gap-1">
+                    <i class="bi bi-headset"></i> {{ _('Support') }}
+                  </a>
+                  <a href="{{ url_for('user.account_settings') }}" class="nav-link px-2 py-1 rounded-2 small d-flex align-items-center gap-1">
+                    <i class="bi bi-gear"></i> {{ _('Settings') }}
+                  </a>
+                  <a href="{{ url_for('auth.logout') }}" class="nav-link px-2 py-1 rounded-2 small d-flex align-items-center gap-1 text-danger">
+                    <i class="bi bi-box-arrow-right"></i> {{ _('Log out') }}
+                  </a>
+                </div>
+              {% endif %}
+
+            </div>
+          </div>
+
+        {% endif %}
+
+      </div>
+    </nav>
+  </header>
+
+  <div class="container flex-grow-1 py-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          {% if message not in ['Déconnexion réussie.', 'Connexion réussie.', 'Logged out.', 'Logged in.'] %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else (category if category in ['success','warning','info'] else 'info') }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if current_user.is_authenticated %}
+      {% include 'base/_sync_banner.html' %}
+    {% endif %}
+
+    {# Licence expiry banner — shown to admin users on every page when the
+       active licence has < 30 days left. Renders nothing otherwise. Crucial
+       in sovereign / hybrid where expiry hard-stops the app. #}
+    {% if current_user.is_authenticated and current_user.is_admin %}
+      {% include 'admin/_license_banner.html' %}
+    {% endif %}
+
+    {% if current_user.is_authenticated and not current_user.is_admin %}
+      {% set is_blocked = (
+          not current_user.is_confirmed or
+          not current_user.is_subscriber
+      ) %}
+      {% if is_blocked %}
+        <div class="alert alert-warning">
+          ⚠️ {{ _('Your access is currently restricted:') }}
+          <ul class="mb-0">
+            {% if not current_user.is_confirmed %}
+              <li>{{ _('Email address not confirmed') }}</li>
+            {% endif %}
+            {% if not current_user.is_subscriber %}
+              <li>{{ _('Inactive subscription') }}</li>
+            {% endif %}
+          </ul>
+          {{ _('Please resolve this from your') }} <a href="{{ url_for('user.account_settings') }}">{{ _('Settings') }}</a> {{ _('page.') }}
+        </div>
+      {% endif %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </div>
+
+  <footer class="text-center py-3 mt-5 border-top" style="color:var(--text-muted);">
+    <div class="container d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 small">
+      <a href="https://github.com/ClaraVnk/myeline" target="_blank" rel="noopener" class="text-decoration-none d-inline-flex align-items-center gap-1" style="color:var(--text-muted);">
+        <i class="bi bi-github"></i> GitHub
+      </a>
+      <a href="https://wiki.myeline.io/editions/community/" target="_blank" rel="noopener" class="text-decoration-none d-inline-flex align-items-center gap-1" style="color:var(--text-muted);">
+        <i class="bi bi-book"></i> {{ _('Documentation') }}
+      </a>
+      <a href="https://github.com/ClaraVnk/myeline/blob/main/LICENSE" target="_blank" rel="noopener" class="text-decoration-none" style="color:var(--text-muted);">AGPL-3.0</a>
+    </div>
+    <div class="mt-2 small" style="color:var(--text-muted);">© {{ now().year }} Myeline · AGPL-3.0</div>
+  </footer>
+
+  {# A4-L2 (debt) — see header comment: third-party JS now self-hosted. #}
+  <script src="{{ url_for('static', filename='vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/select2/select2.min.js') }}"></script>
+
+  <!-- Dark/light mode -->
+  <script nonce="{{ csp_nonce() }}">
+    (function () {
+      const STORAGE_KEY = "myeline-theme";
+      const root = document.documentElement;
+      const btn = document.getElementById("theme-toggle");
+      const icon = document.getElementById("theme-icon");
+
+      function applyTheme(theme) {
+        root.setAttribute("data-theme", theme);
+        localStorage.setItem(STORAGE_KEY, theme);
+        if (icon) {
+          icon.className = theme === "dark" ? "bi bi-sun-fill" : "bi bi-moon-stars-fill";
+        }
+      }
+
+      // Init from localStorage or system preference
+      const saved = localStorage.getItem(STORAGE_KEY);
+      const preferred = saved || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      applyTheme(preferred);
+
+      if (btn) {
+        btn.addEventListener("click", function () {
+          const current = root.getAttribute("data-theme") || "light";
+          applyTheme(current === "dark" ? "light" : "dark");
+        });
+      }
+    })();
+  </script>
+
+  {% block scripts %}{% endblock %}
+
+  {# Google Tag Manager — only on the central SaaS instance (myeline.io
+     classic). On-prem deployments must NOT track their users to a third
+     party they don't control; sovereign air-gap can't reach GTM anyway.
+  #}
+  {% if is_classic and request.cookies.get("cookie_consent") == "accepted" %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6VBVC129N2"></script>
+  <script nonce="{{ csp_nonce() }}">
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-6VBVC129N2', {
+      'anonymize_ip': true,
+      'allow_google_signals': false,
+      'allow_ad_personalization_signals': false
+    });
+  </script>
+  {% endif %}
+</body>
+</html>

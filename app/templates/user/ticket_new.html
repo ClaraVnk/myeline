@@ -1,0 +1,28 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("New ticket") }} — Myeline{% endblock %}
+{% block content %}
+<div class="container my-5" style="max-width:640px;">
+  <div class="mb-4">
+    <a href="{{ url_for('user_tickets.ticket_list') }}" class="text-muted small">← {{ _("My tickets") }}</a>
+  </div>
+  <h2 class="fw-bold mb-4">🎫 {{ _("New support ticket") }}</h2>
+
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+      <label class="form-label fw-semibold">{{ _("Subject") }} *</label>
+      <input type="text" name="subject" class="form-control" maxlength="255" required
+             placeholder="{{ _('Describe your problem in a few words') }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">{{ _("Message") }} *</label>
+      <textarea name="body" class="form-control" rows="6" required
+                placeholder="{{ _('Describe your problem in detail…') }}"></textarea>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">{{ _("Send") }}</button>
+      <a href="{{ url_for('user_tickets.ticket_list') }}" class="btn btn-outline-secondary">{{ _("Cancel") }}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

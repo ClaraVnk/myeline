@@ -1,0 +1,72 @@
+{% extends "base/base.html" %}
+{% block title %}{{ _("Two-factor authentication") }} — Myeline{% endblock %}
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center flex-grow-1 py-5" style="min-height: calc(100vh - 200px);">
+  <div class="liquid-glass p-4 p-md-5" style="max-width: 420px; width: 100%;">
+    <div class="text-center mb-4">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Myeline" class="rounded mx-auto d-block mb-3" style="max-width: 80px; height: auto;">
+      <h2 class="fw-bold mb-1">{{ _("Two-factor authentication") }}</h2>
+      <p class="text-muted small mb-0">
+        {% if method == "totp" %}
+          {{ _("Enter the 6-digit code from your authenticator app.") }}
+        {% else %}
+          {{ _("A code was sent to your email address.") }}
+        {% endif %}
+      </p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+      <div class="alert alert-{{ category }} py-2 small">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% if error %}
+    <div class="alert alert-danger py-2 small">{{ error }}</div>
+    {% endif %}
+
+    {# autocomplete left ON so iOS/macOS Safari can auto-fill the one-time
+       code from Mail/Messages (the field below is autocomplete="one-time-code";
+       a form-level autocomplete="off" would suppress that OS feature). #}
+    <form method="POST" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="mb-3">
+        {% if method == "totp" %}
+        <label for="totp_code" class="form-label fw-medium">{{ _("Verification code") }}</label>
+        <input type="text"
+               id="totp_code"
+               name="totp_code"
+               class="form-control form-control-lg text-center fw-bold"
+               inputmode="numeric"
+               pattern="[0-9]{6}"
+               maxlength="6"
+               autocomplete="one-time-code"
+               autofocus
+               placeholder="000000"
+               required>
+        {% else %}
+        <label for="otp_code" class="form-label fw-medium">{{ _("Verification code") }}</label>
+        <input type="text"
+               id="otp_code"
+               name="otp_code"
+               class="form-control form-control-lg text-center fw-bold"
+               inputmode="numeric"
+               pattern="[0-9]{6}"
+               maxlength="6"
+               autocomplete="one-time-code"
+               autofocus
+               placeholder="000000"
+               required>
+        {% endif %}
+      </div>
+      <div class="d-grid mb-3">
+        <button type="submit" class="btn btn-primary">{{ _("Verify") }}</button>
+      </div>
+    </form>
+
+    <div class="text-center small text-muted">
+      <a href="{{ url_for('auth.login') }}" class="text-decoration-none">{{ _("Back to login") }}</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

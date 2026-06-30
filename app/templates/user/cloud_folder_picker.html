@@ -1,0 +1,102 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("Choose a folder") }} — {{ conn.provider_label }}{% endblock %}
+{% block head %}{{ super() }}<meta name="viewport" content="width=device-width, initial-scale=1">{% endblock %}
+{% block content %}
+
+<div class="container my-5 px-3 px-md-4" style="max-width:700px;">
+
+  <div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{{ url_for('user_cloud.cloud_connections') }}" class="btn btn-outline-secondary btn-sm">← {{ _("Back") }}</a>
+    <h2 class="fw-bold mb-0">{{ _("Choose a folder") }} — {{ conn.provider_label }}</h2>
+  </div>
+
+  <p class="text-muted mb-4">
+    {% if conn.provider == 'gdrive' %}
+      {% if get_locale() == 'en' %}Pick a shared folder to sync, or leave “Everything shared” to index every folder you've shared with Myeline. Myeline only sees what you explicitly share with its service account — never your whole Drive.{% else %}Choisissez un dossier partagé à synchroniser, ou laissez « Tout ce qui est partagé » pour indexer tous les dossiers que vous avez partagés avec Myeline. Myeline ne voit que ce que vous partagez explicitement avec son compte de service — jamais l'intégralité de votre Drive.{% endif %}
+    {% else %}
+      {{ _("Select a folder to sync, or leave \"Full Drive\" to index all your documents.") }}
+    {% endif %}
+  </p>
+
+  <div class="list-group mb-4">
+    <button class="list-group-item list-group-item-action d-flex align-items-center gap-2 folder-btn
+                   {% if not conn.folder_id %}active{% endif %}"
+            data-folder-id="" data-folder-name="">
+      <span>📁</span>
+      <div>
+        {% if conn.provider == 'gdrive' %}
+        <div class="fw-semibold">{% if get_locale() == 'en' %}Everything shared{% else %}Tout ce qui est partagé{% endif %}</div>
+        <div class="text-muted small">{% if get_locale() == 'en' %}All folders shared with Myeline{% else %}Tous les dossiers partagés avec Myeline{% endif %}</div>
+        {% else %}
+        <div class="fw-semibold">{{ _("Full Drive") }}</div>
+        <div class="text-muted small">{{ _("All your accessible documents") }}</div>
+        {% endif %}
+      </div>
+    </button>
+    {% for f in folders %}
+    <button class="list-group-item list-group-item-action d-flex align-items-center gap-2 folder-btn
+                   {% if conn.folder_id == f.id %}active{% endif %}"
+            data-folder-id="{{ f.id }}" data-folder-name="{{ f.name }}">
+      <span>📂</span>
+      <div class="fw-semibold">{{ f.name }}</div>
+    </button>
+    {% endfor %}
+  </div>
+
+  {% if not folders %}
+  <p class="text-muted small">
+    {% if conn.provider == 'gdrive' %}
+      {% if get_locale() == 'en' %}No folders shared with Myeline yet — share a Drive folder with <strong>{{ sa_email or "Myeline's service account" }}</strong> (read access), then come back.{% else %}Aucun dossier partagé avec Myeline pour l'instant — partagez un dossier Drive avec <strong>{{ sa_email or "le compte de service Myeline" }}</strong> (accès lecture), puis revenez ici.{% endif %}
+    {% else %}
+      {{ _("No folders found at the root of your Drive.") }}
+    {% endif %}
+  </p>
+  {% endif %}
+
+  <div id="status" class="text-muted small"></div>
+
+</div>
+
+{% block scripts %}
+{{ super() }}
+<script nonce="{{ csp_nonce() }}">
+const CSRF = '{{ csrf_token() }}';
+const connId = {{ conn.id }};
+const msgSaving = {{ _("Saving…") | tojson }};
+const msgSaved = {{ _("Folder saved. Redirecting…") | tojson }};
+const msgError = {{ _("Error:") | tojson }};
+const msgNetworkError = {{ _("Network error.") | tojson }};
+
+document.querySelectorAll('.folder-btn').forEach(btn => {
+  btn.addEventListener('click', function () {
+    const folderId = this.dataset.folderId || null;
+    const folderName = this.dataset.folderName || null;
+    const status = document.getElementById('status');
+    status.textContent = msgSaving;
+
+    fetch(`/user/cloud/${connId}/set-folder`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      body: JSON.stringify({ folder_id: folderId, folder_name: folderName }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        document.querySelectorAll('.folder-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        status.textContent = msgSaved;
+        setTimeout(() => {
+          window.location.href = '/user/cloud';
+        }, 800);
+      } else {
+        status.textContent = msgError + ' ' + (data.error || '?');
+      }
+    })
+    .catch(() => {
+      status.textContent = msgNetworkError;
+    });
+  });
+});
+</script>
+{% endblock %}
+{% endblock %}

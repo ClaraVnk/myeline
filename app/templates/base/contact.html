@@ -1,0 +1,61 @@
+{% extends "base/base.html" %}
+{% block title %}{{ _("Contact") }} — Myeline{% endblock %}
+{% block content %}
+
+<div class="container py-5" style="max-width: 720px;">
+  <div class="liquid-glass p-4 p-md-5">
+    <h2 class="mb-4">📬 {{ _("Contact us") }}</h2>
+    <p class="text-muted mb-4">
+        {{ _("A question, a suggestion, or a bug to report? Write to us, we'll reply quickly.") }}
+    </p>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        {% if category == 'danger' %}
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ _('Close') }}"></button>
+          </div>
+        {% elif category == 'success' %}
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ _('Close') }}"></button>
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endwith %}
+    <form id="contact-form" method="POST" action="{{ url_for('user.contact') }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
+        <div class="mb-3">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control") }}
+            {% for error in form.email.errors %}
+                <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <div class="mb-3">
+            {{ form.message.label(class="form-label") }}
+            {{ form.message(class="form-control", rows="6") }}
+            {% for error in form.message.errors %}
+                <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+    <button type="submit" class="btn btn-outline-primary px-4">{{ _("Send") }}</button>
+</form>
+{% if request.cookies.get("cookie_consent") == "accepted" %}
+<script src="https://www.google.com/recaptcha/api.js?render={{ site_key }}"></script>
+<script nonce="{{ csp_nonce() }}">
+grecaptcha.ready(function() {
+    document.getElementById('contact-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        grecaptcha.execute('{{ site_key }}', {action: 'contact'}).then(function(token) {
+            document.getElementById('g-recaptcha-response').value = token;
+            event.target.submit();
+        });
+    });
+});
+</script>
+{% endif %}
+</div>
+</div>
+{% endblock %}

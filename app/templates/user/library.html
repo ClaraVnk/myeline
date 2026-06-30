@@ -1,0 +1,366 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("My documents") }} — Myeline{% endblock %}
+{% block head %}{{ super() }}<meta name="viewport" content="width=device-width, initial-scale=1">{% endblock %}
+{% block content %}
+
+<div class="container my-5 px-3 px-md-4" style="max-width:960px;">
+
+  <div class="mb-4 d-flex align-items-center gap-3 flex-wrap">
+    <a href="{{ url_for('user.dashboard') }}" class="btn btn-outline-secondary btn-sm">← {{ _("Back") }}</a>
+    <h2 class="fw-bold mb-0">{{ _("My documents") }}</h2>
+    {% if not sovereign_mode %}
+    <a href="{{ url_for('user_cloud.cloud_connections') }}" class="btn btn-outline-primary btn-sm ms-auto">
+      ⚙ {{ _("Manage cloud services") }}
+    </a>
+    {% endif %}
+  </div>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  {# ── Stats bar ── #}
+  <div class="d-flex gap-3 mb-4 flex-wrap">
+    <div class="card border-0 shadow-sm rounded-4 px-4 py-2 d-flex flex-row align-items-center gap-2">
+      <span class="text-muted small">☁️ {{ _("Cloud") }}</span>
+      <span class="fw-bold">{{ indexed_cloud }}<span class="text-muted fw-normal"> / {{ total_cloud }}</span></span>
+    </div>
+    <div class="card border-0 shadow-sm rounded-4 px-4 py-2 d-flex flex-row align-items-center gap-2">
+      <span class="text-muted small">📡 {{ _("Sources") }}</span>
+      <span class="fw-bold">{{ indexed_scrapers }}<span class="text-muted fw-normal"> / {{ total_scrapers }}</span></span>
+    </div>
+    {% if not connections and total_scrapers == 0 and not sovereign_mode %}
+    <div class="alert alert-info mb-0 py-2 px-3 rounded-4 small">
+      {{ _("No cloud service connected yet.") }}
+      <a href="{{ url_for('user_cloud.cloud_connections') }}">{{ _("Connect a service") }}</a>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── Filters ── #}
+  <form method="GET" action="{{ url_for('user_library.personal_library') }}" class="mb-4">
+    <div class="row g-2 align-items-end">
+
+      <div class="col-12 col-sm-4 col-md-3">
+        <select name="source" class="form-select form-select-sm">
+          <option value="" {% if not source_filter %}selected{% endif %}>{{ _("All documents") }}</option>
+          <option value="cloud" {% if source_filter == 'cloud' %}selected{% endif %}>☁️ {{ _("Cloud") }}</option>
+          <option value="scraper" {% if source_filter == 'scraper' %}selected{% endif %}>📡 {{ _("Scraped sources") }}</option>
+        </select>
+      </div>
+
+      <div class="col-12 col-sm-4 col-md-3">
+        <input type="text" name="q" class="form-control form-control-sm"
+               placeholder="{{ _('Search by title…') }}" value="{{ search_query }}">
+      </div>
+
+      {% if source_filter != 'scraper' %}
+      <div class="col-12 col-sm-4 col-md-2">
+        <select name="provider" class="form-select form-select-sm">
+          <option value="">{{ _("All services") }}</option>
+          {% for conn in connections %}
+          <option value="{{ conn.provider }}" {% if provider_filter == conn.provider %}selected{% endif %}>
+            {{ conn.provider_label }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <div class="col-12 col-sm-4 col-md-2">
+        <select name="tag" class="form-select form-select-sm">
+          <option value="">{{ _("All tags") }}</option>
+          {% for tag in available_tags %}
+          <option value="{{ tag.name }}" {% if tag_filter == tag.name %}selected{% endif %}>{{ tag.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary btn-sm">{{ _("Filter") }}</button>
+        {% if search_query or provider_filter or tag_filter or source_filter %}
+        <a href="{{ url_for('user_library.personal_library') }}" class="btn btn-outline-secondary btn-sm">✕</a>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+
+  {# ── Document list ── #}
+  {% if docs %}
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3">
+    {% for doc in docs %}
+    <div class="doc-row border-bottom px-3 py-2 d-flex align-items-start gap-3"
+         data-doc-id="{{ doc.id }}"
+         data-doc-type="{{ doc.doc_type }}"
+         {% if doc.doc_type == 'scraper' and doc.url %}data-doc-url="{{ doc.url }}"{% endif %}>
+
+      {# Type icon #}
+      {% if doc.doc_type == 'cloud' %}
+        {% set conn = conn_map.get(doc._obj.connection_id) %}
+        {% if conn %}
+        {# Bug X6 — js-hide-on-error (util.js global handler). #}
+        <img src="{{ url_for('static', filename='img/providers/' + conn.provider + '.svg') }}"
+             width="20" height="20" alt="{{ conn.provider_label }}"
+             class="mt-1 flex-shrink-0 js-hide-on-error">
+        {% endif %}
+      {% else %}
+        <span class="mt-1 flex-shrink-0" style="font-size:1.1rem;line-height:1.4;">📡</span>
+      {% endif %}
+
+      {# Main content #}
+      <div class="flex-grow-1 min-width-0">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          {% if doc.doc_type == 'scraper' and doc.url %}
+          <a href="{{ doc.url | safe_url }}" target="_blank" rel="noopener"
+             class="fw-semibold text-truncate text-decoration-none"
+             style="max-width:420px;" title="{{ doc.name }}">{{ doc.name }}</a>
+          {% else %}
+          <span class="fw-semibold text-truncate" style="max-width:420px;" title="{{ doc.name }}">{{ doc.name }}</span>
+          {% endif %}
+
+          <span class="badge bg-secondary-subtle text-secondary border not-indexed-badge{% if doc.chunk_count > 0 %} d-none{% endif %}" style="font-size:.65rem;">
+            {{ _("Not indexed") }}
+          </span>
+        </div>
+
+        <div class="text-muted" style="font-size:.72rem;">
+          {% if doc.doc_type == 'cloud' %}
+            {{ doc.provider_label }}
+            {% if doc.mime_type %}&nbsp;·&nbsp;{{ doc.mime_type.split('/')[-1] }}{% endif %}
+            {% if doc.file_size %}&nbsp;·&nbsp;{{ (doc.file_size / 1024)|int }} Ko{% endif %}
+            {% if doc.indexed_at %}&nbsp;·&nbsp;{{ _("Indexed") }} {{ doc.indexed_at.strftime('%d/%m/%Y') }}{% endif %}
+          {% else %}
+            📡 {{ doc.scraper_name }}
+            {% if doc.published_at %}&nbsp;·&nbsp;{{ doc.published_at.strftime('%d/%m/%Y') }}{% endif %}
+            {% if doc.indexed_at %}&nbsp;·&nbsp;{{ _("Indexed") }} {{ doc.indexed_at.strftime('%d/%m/%Y') }}{% endif %}
+          {% endif %}
+        </div>
+
+        {# Tags #}
+        <div class="tag-chips d-flex flex-wrap gap-1 align-items-center mt-1"
+             data-resource-type="{{ 'cloud' if doc.doc_type == 'cloud' else 'article' }}"
+             data-resource-id="{{ doc.id }}">
+          {% for tag in doc.tags %}
+          <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary tag-chip me-1"
+                data-tag-id="{{ tag.id }}"
+                style="font-size:.7rem;cursor:default;">
+            {{ tag.name }}
+            <button type="button" class="btn-close tag-remove-btn ms-1"
+                    data-tag-id="{{ tag.id }}" aria-label="{{ _('Remove') }}"
+                    style="font-size:.45rem;vertical-align:middle;"></button>
+          </span>
+          {% endfor %}
+          <input type="text" class="tag-input"
+                 placeholder="+ tag"
+                 style="width:55px;font-size:.72rem;border:none;border-bottom:1px dashed var(--bs-secondary);background:transparent;color:inherit;padding:0 2px;outline:none;">
+        </div>
+      </div>
+
+      {# Chat with this single document — only on indexed chunks. #}
+      {% if doc.doc_type == 'cloud' and doc.chunk_count > 0 %}
+      <a href="{{ url_for('user_library.doc_chat', doc_type='cloud', doc_id=doc.id) }}"
+         class="btn btn-outline-primary btn-sm flex-shrink-0"
+         title="{{ _('Chat with this document') }}"
+         style="font-size:.72rem;padding:.2rem .5rem;">
+        💬 {{ _("Chat") }}
+      </a>
+      {% endif %}
+
+      {# Unindex — cloud only #}
+      {% if doc.doc_type == 'cloud' and doc.chunk_count > 0 %}
+      <button class="btn btn-outline-danger btn-sm btn-remove-index flex-shrink-0"
+              data-doc-id="{{ doc.id }}" title="{{ _('Remove from index') }}"
+              style="font-size:.72rem;padding:.2rem .5rem;">
+        {{ _("Unindex") }}
+      </button>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="text-center text-muted py-5">
+    {% if search_query or provider_filter or tag_filter or source_filter %}
+    <p>{{ _("No document matches your filters.") }}</p>
+    {% elif sovereign_mode %}
+    <p>{{ _("Upload documents from the dashboard to start indexing them.") }}</p>
+    {% elif connections or total_scrapers > 0 %}
+    <p>{{ _("No documents synced yet.") }}<br>
+    <a href="{{ url_for('user_cloud.cloud_connections') }}">{{ _("Launch a sync") }}</a></p>
+    {% else %}
+    <p>{{ _("Connect a cloud service to see your documents here.") }}<br>
+    <a href="{{ url_for('user_cloud.cloud_connections') }}">{{ _("Connect a service") }}</a></p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {# ── Pagination ── #}
+  {% if pagination.pages > 1 or per_page != 10 %}
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3">
+    <div class="d-flex gap-1 align-items-center">
+      <span class="text-muted small me-1">{{ _("Per page") }}:</span>
+      {% for n in [10, 50, 100] %}
+      <a href="{{ url_for('user_library.personal_library', q=search_query, provider=provider_filter, tag=tag_filter, source=source_filter, per_page=n, page=1) }}"
+         class="btn btn-sm {% if per_page == n %}btn-secondary{% else %}btn-outline-secondary{% endif %}">{{ n }}</a>
+      {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <nav>
+      <ul class="pagination pagination-sm mb-0">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('user_library.personal_library', q=search_query, provider=provider_filter, tag=tag_filter, source=source_filter, per_page=per_page, page=pagination.prev_num) }}">‹</a>
+        </li>
+        {% endif %}
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if p %}
+          <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('user_library.personal_library', q=search_query, provider=provider_filter, tag=tag_filter, source=source_filter, per_page=per_page, page=p) }}">{{ p }}</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+          {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('user_library.personal_library', q=search_query, provider=provider_filter, tag=tag_filter, source=source_filter, per_page=per_page, page=pagination.next_num) }}">›</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+
+{# ── Preview offcanvas ── #}
+<div class="offcanvas offcanvas-end" tabindex="-1" id="previewPanel" style="width:min(480px,100vw);"
+     aria-labelledby="previewPanelLabel">
+  <div class="offcanvas-header border-bottom">
+    <h6 class="offcanvas-title fw-semibold text-truncate me-2" id="previewPanelLabel" style="max-width:380px;"></h6>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="{{ _('Close') }}"></button>
+  </div>
+  <div class="offcanvas-body p-0">
+    <div id="previewLoading" class="d-flex justify-content-center align-items-center py-5 d-none">
+      <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+    </div>
+    <div id="previewError" class="alert alert-danger mx-3 mt-3 d-none"></div>
+    <div id="previewContent" class="d-none">
+      <div id="previewMeta" class="px-3 pt-3 pb-2 border-bottom small text-muted d-flex flex-wrap gap-2"></div>
+      <div id="previewBody" class="px-3 pt-3" style="font-size:.82rem;line-height:1.6;white-space:pre-wrap;word-break:break-word;"></div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script nonce="{{ csp_nonce() }}">
+const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
+const csrfToken = CSRF;
+
+document.querySelectorAll('.btn-remove-index').forEach(btn => {
+  btn.addEventListener('click', function () {
+    if (!confirm({{ _("Remove this document from the index? It will be re-indexed on next sync.") | tojson }})) return;
+    const docId = this.dataset.docId;
+    const row = this.closest('.doc-row');
+    btn.disabled = true;
+    fetch('/user/ma-bibliotheque/cloud-doc/remove-index', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      body: JSON.stringify({ doc_id: parseInt(docId) }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        const notIndexed = row.querySelector('.not-indexed-badge');
+        if (notIndexed) notIndexed.classList.remove('d-none');
+        btn.remove();
+      } else {
+        btn.disabled = false;
+        alert(data.message || '{{ _("Error") }}');
+      }
+    })
+    .catch(() => { btn.disabled = false; });
+  });
+});
+
+// Bug X11 (audit round 3) — escHtml + safeUrlJs viennent désormais
+// de app/static/js/util.js (chargé depuis base.html). L'ancienne
+// version locale d'escHtml ici était LAXE (n'échappait pas `'`).
+
+// ── Document preview ──────────────────────────────────────────────────────
+const previewOffcanvas = new bootstrap.Offcanvas(document.getElementById('previewPanel'));
+const previewLabel   = document.getElementById('previewPanelLabel');
+const previewLoading = document.getElementById('previewLoading');
+const previewError   = document.getElementById('previewError');
+const previewContent = document.getElementById('previewContent');
+const previewMeta    = document.getElementById('previewMeta');
+const previewBody    = document.getElementById('previewBody');
+
+function showPreview(docId, docType) {
+  previewLabel.textContent = '…';
+  previewLoading.classList.remove('d-none');
+  previewError.classList.add('d-none');
+  previewContent.classList.add('d-none');
+  previewOffcanvas.show();
+
+  fetch(`/user/ma-bibliotheque/preview/${docType}/${docId}`)
+    .then(r => r.json())
+    .then(d => {
+      previewLoading.classList.add('d-none');
+      if (d.error) {
+        previewError.textContent = d.error;
+        previewError.classList.remove('d-none');
+        return;
+      }
+
+      previewLabel.textContent = d.name || d.title || '';
+
+      const badges = [];
+      if (d.provider)     badges.push(`<span class="badge bg-secondary-subtle text-secondary border">${escHtml(d.provider)}</span>`);
+      if (d.scraper_name) badges.push(`<span class="badge bg-secondary-subtle text-secondary border">📡 ${escHtml(d.scraper_name)}</span>`);
+      if (d.mime_type)    badges.push(`<span class="badge bg-light text-muted border">${escHtml(d.mime_type.split('/').pop())}</span>`);
+      if (d.file_size)    badges.push(`<span class="text-muted">${Math.round(d.file_size/1024)} Ko</span>`);
+      if (d.published_at) badges.push(`<span class="text-muted">{{ _("Published") }} ${escHtml(d.published_at)}</span>`);
+      if (d.indexed_at)   badges.push(`<span class="text-muted">{{ _("Indexed") }} ${escHtml(d.indexed_at)}</span>`);
+      if (d.url) badges.push(`<a href="${escHtml(safeUrlJs(d.url))}" target="_blank" rel="noopener" class="text-decoration-none small">↗ {{ _("Open source") }}</a>`);
+      previewMeta.innerHTML = badges.join('');
+
+      let html = '';
+      if (d.chunks && d.chunks.length) {
+        html = d.chunks.map((c, i) =>
+          `<div class="mb-3 pb-3 border-bottom"><div>${escHtml(c)}</div></div>`
+        ).join('');
+      } else if (d.content) {
+        html = `<div>${escHtml(d.content)}</div>`;
+      } else {
+        html = `<p class="text-muted fst-italic">{{ _("No indexed content yet.") }}</p>`;
+      }
+      previewBody.innerHTML = html;
+      previewContent.classList.remove('d-none');
+    })
+    .catch(() => {
+      previewLoading.classList.add('d-none');
+      previewError.textContent = '{{ _("Error loading preview.") }}';
+      previewError.classList.remove('d-none');
+    });
+}
+
+document.querySelectorAll('.doc-row').forEach(row => {
+  row.style.cursor = 'pointer';
+  row.addEventListener('click', function (e) {
+    if (e.target.closest('button, a, input, .tag-input, .tag-chip, .btn-remove-index')) return;
+    showPreview(this.dataset.docId, this.dataset.docType);
+  });
+});
+</script>
+{% include 'user/_tag_widget.html' %}
+{% endblock %}

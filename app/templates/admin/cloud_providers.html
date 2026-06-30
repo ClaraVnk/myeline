@@ -1,0 +1,120 @@
+{% extends 'base/base.html' %}
+{% block title %}Connecteurs cloud — Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:900px;">
+
+  {# License banner is rendered globally from base/base.html for admins. #}
+
+  <h1 class="fw-semibold mb-3" style="font-size:1.4rem;">
+    <i class="bi bi-cloud-arrow-up me-2"></i>Connecteurs cloud — credentials OAuth
+  </h1>
+
+  {% if is_sovereign %}
+  <div class="alert alert-info d-flex align-items-start mb-4" role="status"
+       style="border-radius:.5rem;">
+    <i class="bi bi-info-circle me-2 mt-1"></i>
+    <div>
+      <strong>Mode souverain (air-gap) :</strong>
+      les connecteurs OAuth (Google Drive / OneDrive / Dropbox / kDrive)
+      sont désactivés car ils nécessitent un accès Internet vers les
+      serveurs des providers. En air-gap, seuls S3-compatible (MinIO
+      interne) et WebDAV (Nextcloud interne) sont disponibles.
+      <div class="small mt-1">
+        Vos utilisateurs configurent leurs identifiants S3/WebDAV
+        directement depuis <a href="{{ url_for('user_cloud.cloud_connections') }}">/user/cloud</a>
+        — aucune configuration OAuth globale requise ici.
+      </div>
+    </div>
+  </div>
+  {% elif is_hybrid %}
+  <div class="alert alert-info d-flex align-items-start mb-4" role="status"
+       style="border-radius:.5rem;">
+    <i class="bi bi-info-circle me-2 mt-1"></i>
+    <div>
+      <strong>Mode souverain-hybride :</strong>
+      vos utilisateurs peuvent indexer Google Drive / OneDrive / Dropbox /
+      kDrive uniquement si <strong>vous</strong> enregistrez vos propres
+      apps OAuth chez chaque provider. Les credentials de myeline.io
+      ne fonctionnent que pour le SaaS central.
+      <div class="small mt-1">
+        Walkthrough complet : <a href="https://github.com/clara-myeline/myeline/blob/synapse/docs/deployment-sovereign-hybrid.md">docs/deployment-sovereign-hybrid.md</a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <p class="text-muted">
+    Pour activer un connecteur, créez l'app OAuth chez le provider, puis
+    autorisez le redirect URI ci-dessous, et ajoutez le couple
+    <code>client_id</code> / <code>client_secret</code> dans <code>.env</code>
+    avant de redémarrer (<code>podman-compose restart web</code>).
+  </p>
+
+  {% for p in providers %}
+  <div class="card mb-3 shadow-sm">
+    <div class="card-body">
+      <div class="d-flex align-items-center mb-2">
+        <h2 class="fw-semibold mb-0 me-2" style="font-size:1.05rem;">
+          {{ p.label }}
+        </h2>
+        {% if p.configured %}
+          <span class="badge bg-success">configuré</span>
+        {% else %}
+          <span class="badge bg-secondary">dormant</span>
+        {% endif %}
+        <a href="{{ p.console_url }}" target="_blank" rel="noopener"
+           class="ms-auto small text-decoration-none">
+          {{ p.console_url|replace('https://', '') }}
+          <i class="bi bi-box-arrow-up-right"></i>
+        </a>
+      </div>
+
+      <div class="small text-muted mb-1">Redirect URI à autoriser :</div>
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <code id="ru-{{ p.key }}" class="p-2 bg-light rounded flex-grow-1"
+              style="font-size:.85rem; word-break:break-all;">{{ p.redirect_uri }}</code>
+        {# Bug X6 — data-copy-target + handler global (CSP nonce). #}
+        <button type="button" class="btn btn-sm btn-outline-secondary js-copy-btn"
+                data-copy-target="ru-{{ p.key }}"
+                title="Copier">
+          <i class="bi bi-clipboard"></i>
+        </button>
+      </div>
+
+      <div class="small text-muted">
+        Variables <code>.env</code> : <code>{{ p.env_id }}</code>, <code>{{ p.env_secret }}</code>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="alert alert-light border mt-4">
+    <h2 class="fw-semibold mb-2" style="font-size:1rem;">
+      <i class="bi bi-question-circle me-1"></i>Connecteurs sans OAuth global
+    </h2>
+    <p class="small mb-0 text-muted">
+      <strong>Zotero / S3 / Notion / WebDAV / kDrive (par token API)</strong>
+      ne nécessitent pas de configuration globale ici — chaque utilisateur
+      saisit ses propres identifiants directement depuis sa page
+      <a href="{{ url_for('user_cloud.cloud_connections') }}">/user/cloud</a>.
+    </p>
+  </div>
+
+</div>
+
+{# Bug X6 (audit round 3) — handler global copy-to-clipboard, wire les
+   boutons .js-copy-btn[data-copy-target=id]. Évite l'inline onclick. #}
+<script nonce="{{ csp_nonce() }}">
+  document.addEventListener('click', function (ev) {
+    const btn = ev.target.closest('.js-copy-btn');
+    if (!btn) return;
+    const target = document.getElementById(btn.dataset.copyTarget);
+    if (!target) return;
+    navigator.clipboard.writeText(target.textContent.trim());
+    const original = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check"></i>';
+    setTimeout(() => { btn.innerHTML = original; }, 1500);
+  });
+</script>
+{% endblock %}

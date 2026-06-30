@@ -1,0 +1,4190 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-05-21 14:08+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: app/routes/org.py:201
+#, python-format
+msgid ""
+"Member limit reached for this plan (%(cap)s members on Team). Upgrade to "
+"Enterprise for unlimited members."
+msgstr ""
+
+#: app/routes/org_auth.py:43
+msgid "SSO not configured for this organisation."
+msgstr ""
+
+#: app/routes/org_auth.py:51
+msgid "Unable to contact the identity provider."
+msgstr ""
+
+#: app/routes/org_auth.py:67
+#, python-format
+msgid "SSO login refused: %(error)s"
+msgstr ""
+
+#: app/routes/org_auth.py:76
+msgid "Invalid or expired SSO response."
+msgstr ""
+
+#: app/routes/org_auth.py:82
+msgid "SSO session expired. Please retry from the login page."
+msgstr ""
+
+#: app/routes/org_auth.py:97 app/routes/org_auth.py:101
+msgid "SSO authentication failed. Contact your administrator."
+msgstr ""
+
+#: app/routes/org_auth.py:126
+msgid ""
+"This invitation link has expired. Ask your administrator to send a new "
+"one."
+msgstr ""
+
+#: app/routes/org_auth.py:129
+msgid "Invalid invitation link."
+msgstr ""
+
+#: app/routes/org_auth.py:159
+msgid "Organisation not found."
+msgstr ""
+
+#: app/routes/org_auth.py:205
+#, python-format
+msgid "Connectez-vous à votre compte %(email)s pour rejoindre %(org)s."
+msgstr ""
+
+#: app/routes/org_auth.py:215
+msgid "Your account is already a member of this organisation."
+msgstr ""
+
+#: app/routes/org_auth.py:234 app/routes/org_auth.py:320
+#, python-format
+msgid "Welcome to %(name)s!"
+msgstr ""
+
+#: app/routes/org_auth.py:245
+#, python-format
+msgid "Your account has been linked to %(name)s."
+msgstr ""
+
+#: app/routes/org_auth.py:248
+msgid "Your account is already associated with another organisation."
+msgstr ""
+
+#: app/routes/org_auth.py:276
+msgid "Invalid invitation."
+msgstr ""
+
+#: app/routes/org_auth.py:280
+msgid "Your account is already active. Log in."
+msgstr ""
+
+#: app/routes/org_auth.py:288
+msgid "The password must be at least 8 characters long."
+msgstr ""
+
+#: app/routes/org_auth.py:292
+msgid "The passwords do not match."
+msgstr ""
+
+#: app/templates/auth/first_password_reset.html:2
+msgid "Set your password"
+msgstr ""
+
+#: app/templates/auth/first_password_reset.html:12
+msgid "Choose your password"
+msgstr ""
+
+#: app/templates/auth/first_password_reset.html:14
+msgid ""
+"This is your first login — the temporary password you received by email "
+"must be replaced before you can use the application."
+msgstr ""
+
+#: app/templates/auth/first_password_reset.html:21
+#: app/templates/base/contact.html:15 app/templates/base/contact.html:20
+#: app/templates/log/forgot_password.html:17
+#: app/templates/log/resend_confirmation_page.html:23
+#: app/templates/log/reset_password.html:21
+#: app/templates/user/dashboard.html:369 app/templates/user/library.html:249
+msgid "Close"
+msgstr ""
+
+#: app/templates/auth/first_password_reset.html:31
+#: app/templates/log/reset_password.html:2
+#: app/templates/log/reset_password.html:32 app/templates/user/settings.html:30
+msgid "New password"
+msgstr ""
+
+#: app/templates/auth/first_password_reset.html:36
+msgid ""
+"Minimum 8 chars, with at least one uppercase, one lowercase, one digit "
+"and one special character (! @ # $ % & * etc.)."
+msgstr ""
+
+#: app/templates/auth/first_password_reset.html:42
+#: app/templates/log/reset_password.html:37
+msgid "Confirm password"
+msgstr ""
+
+#: app/templates/auth/first_password_reset.html:49
+msgid "Set password and continue"
+msgstr ""
+
+#: app/templates/auth/first_password_reset.html:55
+msgid "Logout"
+msgstr ""
+
+#: app/templates/base/_sync_banner.html:35
+msgid "Indexing"
+msgstr ""
+
+#: app/templates/base/_sync_banner.html:36
+msgid "of"
+msgstr ""
+
+#: app/templates/base/_sync_banner.html:37
+msgid "files"
+msgstr ""
+
+#: app/templates/base/_sync_banner.html:38
+msgid "articles"
+msgstr ""
+
+#: app/templates/base/_sync_banner.html:39
+msgid "remaining"
+msgstr ""
+
+#: app/templates/base/_sync_banner.html:40
+msgid "You can already query the documents that are indexed."
+msgstr ""
+
+#: app/templates/base/_sync_banner.html:41
+msgid "Starting…"
+msgstr ""
+
+#: app/templates/base/_sync_banner.html:42
+msgid "almost done"
+msgstr ""
+
+#: app/templates/base/_sync_banner.html:43
+msgid "Fetching"
+msgstr ""
+
+#: app/templates/base/about.html:2 app/templates/base/base.html:394
+msgid "About"
+msgstr ""
+
+#: app/templates/base/about.html:9 app/templates/base/base.html:44
+#: app/templates/base/home.html:2 app/templates/base/home.html:9
+msgid "Your personal library, made intelligent."
+msgstr ""
+
+#: app/templates/base/about.html:13 app/templates/base/faq.html:15
+msgid "What is Myeline?"
+msgstr ""
+
+#: app/templates/base/about.html:15
+msgid ""
+"Myeline is a platform for monitoring documents and querying them with AI "
+"— designed for professionals who need to stay informed without "
+"compromising confidentiality."
+msgstr ""
+
+#: app/templates/base/about.html:18
+msgid ""
+"Connect your RSS feeds, add web pages, plug in your cloud drives (Google "
+"Drive, OneDrive, Dropbox, Zotero, S3, WebDAV…) so Myeline can index your "
+"files (PDF, Word…), and ask questions in natural language. The AI answers"
+" by citing its sources. Document understanding happens locally on our "
+"servers; the AI that writes the answer is Mistral AI, a French provider "
+"hosted in the European Union, contractually committed to never train on "
+"your data."
+msgstr ""
+
+#: app/templates/base/about.html:21
+msgid ""
+"For regulated industries that need everything to stay on-site, our "
+"sovereign / on-premise edition runs the full AI pipeline inside your "
+"infrastructure — no external API call ever leaves your network."
+msgstr ""
+
+#: app/templates/base/about.html:26
+msgid "The project"
+msgstr ""
+
+#: app/templates/base/about.html:35
+msgid ""
+"Myeline was born from a simple need: having a tool that centralises, "
+"indexes, and makes searchable the sources that matter — without sending "
+"data to third parties. Clara designed and developed the platform as an "
+"independent project, with a focus on privacy and local processing."
+msgstr ""
+
+#: app/templates/base/about.html:44
+msgid "Our values"
+msgstr ""
+
+#: app/templates/base/about.html:49 app/templates/base/home.html:370
+msgid "Independence"
+msgstr ""
+
+#: app/templates/base/about.html:50
+msgid ""
+"No advertising. No commercial partnerships. Our only clients are our "
+"subscribers. No external influence on the platform's content or "
+"direction."
+msgstr ""
+
+#: app/templates/base/about.html:56
+msgid "Privacy first"
+msgstr ""
+
+#: app/templates/base/about.html:57
+msgid ""
+"Document understanding stays on our servers. The AI that writes the "
+"answers is Mistral AI — French provider, EU-hosted, contractually "
+"committed not to train on your data. Sensitive data is encrypted at rest."
+" Sovereign / on-premise deployments keep everything inside your "
+"infrastructure — no external call at all. Infrastructure hosted in "
+"France, GDPR-compliant."
+msgstr ""
+
+#: app/templates/base/about.html:63
+msgid "Useful by design"
+msgstr ""
+
+#: app/templates/base/about.html:64
+msgid ""
+"Every answer cites its sources with a relevance score. The tool is "
+"designed to augment your judgment, not replace it. Transparency over "
+"magic."
+msgstr ""
+
+#: app/templates/base/about.html:71 app/templates/base/base.html:395
+#: app/templates/base/contact.html:2 app/templates/base/cookies.html:37
+#: app/templates/base/legal_mentions.html:41
+msgid "Contact"
+msgstr ""
+
+#: app/templates/base/about.html:73
+msgid "A question, a suggestion, or a partnership request?"
+msgstr ""
+
+#: app/templates/base/about.html:74
+msgid "Get in touch"
+msgstr ""
+
+#: app/templates/base/base.html:45
+#, python-format
+msgid ""
+"AI search over curated archives or your own documents. 100%% local "
+"processing, hosted in France — no data sent to third parties."
+msgstr ""
+
+#: app/templates/base/base.html:56
+msgid "Cookie settings"
+msgstr ""
+
+#: app/templates/base/base.html:57
+msgid ""
+"This site uses <strong>essential cookies</strong> for operation and "
+"<strong>analytics cookies</strong> (Google Analytics) to improve your "
+"experience."
+msgstr ""
+
+#: app/templates/base/base.html:59
+msgid "You can accept all cookies or decline non-essential ones."
+msgstr ""
+
+#: app/templates/base/base.html:60
+msgid "Learn more"
+msgstr ""
+
+#: app/templates/base/base.html:67
+msgid "Accept all"
+msgstr ""
+
+#: app/templates/base/base.html:68
+msgid "Decline non-essential"
+msgstr ""
+
+#: app/templates/base/base.html:149 app/templates/base/base.html:150
+#: app/templates/base/base.html:153 app/templates/base/home.html:295
+#: app/templates/base/home.html:297 app/templates/base/pricing.html:142
+#: app/templates/user/settings.html:71 app/templates/user/settings.html:174
+msgid "Subscribe"
+msgstr ""
+
+#: app/templates/base/base.html:157 app/templates/base/base.html:158
+#: app/templates/base/base.html:161 app/templates/log/login.html:2
+#: app/templates/org/login.html:40
+msgid "Log in"
+msgstr ""
+
+#: app/templates/base/base.html:176
+msgid "Toggle dark mode"
+msgstr ""
+
+#: app/templates/base/base.html:197 app/templates/base/base.html:315
+#: app/templates/base/pricing.html:311
+msgid "Support"
+msgstr ""
+
+#: app/templates/base/base.html:198 app/templates/base/base.html:318
+#: app/templates/base/base.html:376
+msgid "Settings"
+msgstr ""
+
+#: app/templates/base/base.html:200 app/templates/base/base.html:321
+#: app/templates/payment/payment_failed.html:19
+#: app/templates/payment/resubscribe.html:80
+msgid "Log out"
+msgstr ""
+
+#: app/templates/base/base.html:209
+msgid "Open menu"
+msgstr ""
+
+#: app/templates/base/base.html:224 app/templates/base/cgv.html:52
+msgid "Users"
+msgstr ""
+
+#: app/templates/base/base.html:228
+msgid "Organisations"
+msgstr ""
+
+#: app/templates/base/base.html:287
+msgid "Dashboard"
+msgstr ""
+
+#: app/templates/base/base.html:291 app/templates/user/index_manager.html:10
+msgid "My library"
+msgstr ""
+
+#: app/templates/base/base.html:296 app/templates/user/dashboard.html:113
+#: app/templates/user/dashboard.html:215 app/templates/user/scrapers.html:2
+#: app/templates/user/scrapers.html:10
+msgid "My sources"
+msgstr ""
+
+#: app/templates/base/base.html:301 app/templates/base/faq.html:68
+#: app/templates/user/library.html:29 app/templates/user/library.html:51
+msgid "Cloud"
+msgstr ""
+
+#: app/templates/base/base.html:367
+msgid "Your access is currently restricted:"
+msgstr ""
+
+#: app/templates/base/base.html:370
+msgid "Email address not confirmed"
+msgstr ""
+
+#: app/templates/base/base.html:373
+msgid "Inactive subscription"
+msgstr ""
+
+#: app/templates/base/base.html:376
+msgid "Please resolve this from your"
+msgstr ""
+
+#: app/templates/base/base.html:376
+msgid "page."
+msgstr ""
+
+#: app/templates/base/base.html:387 app/templates/base/cgv.html:45
+#: app/templates/base/home.html:135 app/templates/base/pricing.html:2
+#: app/templates/base/pricing.html:10
+msgid "Pricing"
+msgstr ""
+
+#: app/templates/base/base.html:389 app/templates/base/status.html:2
+msgid "Status"
+msgstr ""
+
+#: app/templates/base/base.html:390 app/templates/base/legal_mentions.html:2
+#: app/templates/base/legal_mentions.html:5
+msgid "Legal notices"
+msgstr ""
+
+#: app/templates/base/base.html:391 app/templates/base/privacy_policy.html:2
+#: app/templates/base/privacy_policy.html:5 app/templates/log/register.html:116
+msgid "Privacy policy"
+msgstr ""
+
+#: app/templates/base/base.html:393
+msgid "Documentation"
+msgstr ""
+
+#: app/templates/base/base.html:396 app/templates/base/cookies.html:2
+#: app/templates/base/cookies.html:5
+msgid "Cookie policy"
+msgstr ""
+
+#: app/templates/base/base.html:397 app/templates/base/cgv.html:2
+#: app/templates/base/cgv.html:5 app/templates/log/register.html:110
+msgid "Terms of sale"
+msgstr ""
+
+#: app/templates/base/cgv.html:18
+msgid "Service publisher"
+msgstr ""
+
+#: app/templates/base/cgv.html:20
+msgid ""
+"The Myeline service is published by Clara Vanacker EI — SIREN: 909 009 "
+"268."
+msgstr ""
+
+#: app/templates/base/cgv.html:21 app/templates/base/legal_mentions.html:10
+msgid "Contact:"
+msgstr ""
+
+#: app/templates/base/cgv.html:21
+msgid "Contact form"
+msgstr ""
+
+#: app/templates/base/cgv.html:26
+msgid "Purpose"
+msgstr ""
+
+#: app/templates/base/cgv.html:28
+msgid ""
+"These terms govern the sale of a digital subscription to the Myeline "
+"platform — an intelligent document watch and AI assistant service for "
+"professionals."
+msgstr ""
+
+#: app/templates/base/cgv.html:33
+msgid "Service description"
+msgstr ""
+
+#: app/templates/base/cgv.html:34
+msgid "Depending on the chosen plan, the subscription gives access to:"
+msgstr ""
+
+#: app/templates/base/cgv.html:36
+msgid ""
+"AI search over indexed documents and sources (document indexing and "
+"semantic search run on our French servers; answer synthesis uses the "
+"Mistral AI API — a French/EU-hosted provider — only your question and a "
+"few excerpts are transmitted, not full documents)"
+msgstr ""
+
+#: app/templates/base/cgv.html:37
+msgid "Personal document library (PDF, Word, ODF…)"
+msgstr ""
+
+#: app/templates/base/cgv.html:38
+msgid "Watch digest emails (frequency varies by plan)"
+msgstr ""
+
+#: app/templates/base/cgv.html:39
+msgid "Custom RSS/web sources (Pro and above)"
+msgstr ""
+
+#: app/templates/base/cgv.html:40
+msgid "Shared organisation workspace (Team and above)"
+msgstr ""
+
+#: app/templates/base/cgv.html:50
+msgid "Plan"
+msgstr ""
+
+#: app/templates/base/cgv.html:51
+msgid "Price"
+msgstr ""
+
+#: app/templates/base/cgv.html:56 app/templates/base/cgv.html:57
+#: app/templates/base/cgv.html:58 app/templates/base/cgv.html:59
+msgid "incl. tax / month"
+msgstr ""
+
+#: app/templates/base/cgv.html:58
+msgid "up to 10"
+msgstr ""
+
+#: app/templates/base/cgv.html:59 app/templates/base/home.html:263
+#: app/templates/base/pricing.html:124
+msgid "Enterprise"
+msgstr ""
+
+#: app/templates/base/cgv.html:59
+msgid "up to 50"
+msgstr ""
+
+#: app/templates/base/cgv.html:64
+msgid ""
+"Beyond 50 users, a custom Sovereign / Sovereign-hybrid contract applies "
+"(dedicated infrastructure, signed DPA, custom SLA — quote on request)."
+msgstr ""
+
+#: app/templates/base/cgv.html:65
+msgid ""
+"Myeline reserves the right to modify its prices with prior notice to "
+"subscribers."
+msgstr ""
+
+#: app/templates/base/cgv.html:70
+msgid "Payment"
+msgstr ""
+
+#: app/templates/base/cgv.html:72
+msgid ""
+"Payments are processed by Stripe. Myeline never stores your banking "
+"details."
+msgstr ""
+
+#: app/templates/base/cgv.html:77
+msgid "Duration and renewal"
+msgstr ""
+
+#: app/templates/base/cgv.html:79
+msgid ""
+"The subscription is monthly, with no commitment, automatically renewed "
+"until cancellation via the personal account area."
+msgstr ""
+
+#: app/templates/base/cgv.html:84
+msgid "Cancellation"
+msgstr ""
+
+#: app/templates/base/cgv.html:86
+msgid ""
+"The subscriber can cancel at any time from the Stripe management portal. "
+"Access remains active until the end of the paid period. No partial "
+"refunds are possible."
+msgstr ""
+
+#: app/templates/base/cgv.html:90
+msgid "Right of withdrawal"
+msgstr ""
+
+#: app/templates/base/cgv.html:92
+msgid ""
+"Pursuant to Article L221-28 of the Consumer Code, the right of withdrawal"
+" does not apply to digital content delivered immediately with the user's "
+"express agreement."
+msgstr ""
+
+#: app/templates/base/cgv.html:97 app/templates/base/legal_mentions.html:21
+msgid "Liability"
+msgstr ""
+
+#: app/templates/base/cgv.html:99
+msgid ""
+"The information provided is not intended to replace professional judgment"
+" or expertise. The user is solely responsible for the interpretation and "
+"use of the content."
+msgstr ""
+
+#: app/templates/base/cgv.html:104 app/templates/base/legal_mentions.html:18
+msgid "Intellectual property"
+msgstr ""
+
+#: app/templates/base/cgv.html:106
+msgid ""
+"All platform content (interface, logo, code) is the exclusive property of"
+" Myeline. Any reproduction or distribution without authorisation is "
+"prohibited."
+msgstr ""
+
+#: app/templates/base/cgv.html:111 app/templates/base/legal_mentions.html:27
+msgid "Personal data"
+msgstr ""
+
+#: app/templates/base/cgv.html:113
+msgid ""
+"Data collected is necessary for subscription management and is processed "
+"in accordance with GDPR. See our"
+msgstr ""
+
+#: app/templates/base/cgv.html:114 app/templates/base/faq.html:148
+msgid "privacy policy"
+msgstr ""
+
+#: app/templates/base/cgv.html:119
+msgid "Disputes"
+msgstr ""
+
+#: app/templates/base/cgv.html:121
+msgid ""
+"In the event of a dispute, the user may submit a complaint via the "
+"contact form. Failing an amicable resolution, the dispute will be "
+"referred to the competent courts."
+msgstr ""
+
+#: app/templates/base/cgv.html:125
+msgid "Last updated: May 2025"
+msgstr ""
+
+#: app/templates/base/contact.html:6 app/templates/base/home.html:129
+#: app/templates/base/home.html:296 app/templates/base/pricing.html:147
+msgid "Contact us"
+msgstr ""
+
+#: app/templates/base/contact.html:8
+msgid ""
+"A question, a suggestion, or a bug to report? Write to us, we'll reply "
+"quickly."
+msgstr ""
+
+#: app/templates/base/contact.html:42 app/templates/user/ticket_detail.html:56
+#: app/templates/user/ticket_new.html:23
+msgid "Send"
+msgstr ""
+
+#: app/templates/base/cookies.html:7
+msgid "What is a cookie?"
+msgstr ""
+
+#: app/templates/base/cookies.html:8
+msgid ""
+"A cookie is a small text file stored on your device (computer, mobile, "
+"tablet) when you visit a website. It allows the site to remember certain "
+"information about you to facilitate your browsing or measure its "
+"audience."
+msgstr ""
+
+#: app/templates/base/cookies.html:10
+msgid "Why do we use cookies?"
+msgstr ""
+
+#: app/templates/base/cookies.html:11
+msgid "Myeline uses cookies for the following reasons:"
+msgstr ""
+
+#: app/templates/base/cookies.html:13
+msgid ""
+"Technical cookies: necessary for the proper functioning of the site "
+"(e.g., session management, language preferences)."
+msgstr ""
+
+#: app/templates/base/cookies.html:14
+msgid ""
+"Analytics cookies: we use Google Analytics for anonymous statistics "
+"(pages visited, reading time, etc.)."
+msgstr ""
+
+#: app/templates/base/cookies.html:18
+msgid "Managing your consent"
+msgstr ""
+
+#: app/templates/base/cookies.html:19
+msgid ""
+"On your first visit to the site, a banner informs you of cookie usage. "
+"You can then choose:"
+msgstr ""
+
+#: app/templates/base/cookies.html:21
+msgid "Accept all cookies"
+msgstr ""
+
+#: app/templates/base/cookies.html:22
+msgid "Decline non-essential cookies (such as Google Analytics)"
+msgstr ""
+
+#: app/templates/base/cookies.html:24
+msgid ""
+"Your choice is saved for 12 months but you can change it at any time by "
+"deleting your browser cookies."
+msgstr ""
+
+#: app/templates/base/cookies.html:27
+msgid "How to disable cookies?"
+msgstr ""
+
+#: app/templates/base/cookies.html:28
+msgid "You can configure your browser to refuse all or some cookies:"
+msgstr ""
+
+#: app/templates/base/cookies.html:38
+msgid "For any questions about this policy, contact us via the contact form."
+msgstr ""
+
+#: app/templates/base/faq.html:5 app/templates/base/pricing.html:363
+msgid "Frequently asked questions"
+msgstr ""
+
+#: app/templates/base/faq.html:7
+msgid "A question about Myeline? Find the answers below."
+msgstr ""
+
+#: app/templates/base/faq.html:20
+msgid ""
+"Myeline is an AI-powered document intelligence assistant. You index your "
+"own sources (PDFs, RSS feeds, web pages, cloud files) and query them in "
+"natural language — as if you were talking to a colleague who has read "
+"everything.<br><br>Document indexing and semantic search run on our "
+"servers in France. For generating answers, Myeline uses the "
+"<strong>Mistral AI API</strong> — a French provider, EU-hosted — only "
+"your question and a few relevant excerpts are transmitted, never your "
+"full documents. Mistral AI contractually commits to not training its "
+"models on API data. Your data never leaves the European Union."
+msgstr ""
+
+#: app/templates/base/faq.html:28
+msgid "How does smart search work?"
+msgstr ""
+
+#: app/templates/base/faq.html:33
+#, python-format
+msgid ""
+"The search is based on a technology called RAG (Retrieval-Augmented "
+"Generation):<ol><li><strong>Embedding (100%% local)</strong> — Your "
+"question is converted into a mathematical fingerprint and compared "
+"against all your indexed documents and sources. This step runs entirely "
+"on our servers in France — nothing leaves.</li><li><strong>Retrieval "
+"(100%% local)</strong> — The most relevant excerpts are selected "
+"automatically from your indexed content.</li><li><strong>Synthesis "
+"(Mistral AI API)</strong> — Your question and the selected excerpts (a "
+"few hundred words at most, not your full documents) are sent to the "
+"Mistral AI API (France, EU-hosted) to generate a cited, structured "
+"answer. Mistral commits by contract to not using API data to train its "
+"models.</li></ol>Your full documents never leave our infrastructure. Only"
+" short excerpts — the ones strictly needed to answer your question — are "
+"transmitted, and they stay within the European Union."
+msgstr ""
+
+#: app/templates/base/faq.html:41
+msgid "What is the difference between Standard, Pro, Team and Enterprise plans?"
+msgstr ""
+
+#: app/templates/base/faq.html:47
+msgid "Standard (9.90 €/month)"
+msgstr ""
+
+#: app/templates/base/faq.html:47
+msgid ""
+"Personal library (100 docs · 25 MB/file), 1 cloud connection, watch "
+"digest, 30 AI searches/day."
+msgstr ""
+
+#: app/templates/base/faq.html:48
+msgid "Pro (29.90 €/month)"
+msgstr ""
+
+#: app/templates/base/faq.html:48
+msgid ""
+"Everything in Standard + expanded library (1,000 docs · 100 MB), "
+"unlimited cloud connections, RSS / web sources, 60 AI searches/day with "
+"priority queue."
+msgstr ""
+
+#: app/templates/base/faq.html:49
+msgid "Team (99 €/month)"
+msgstr ""
+
+#: app/templates/base/faq.html:49
+msgid ""
+"Everything in Pro + shared workspace and library across the team, up to "
+"10 members, 120 AI searches/day shared org-wide."
+msgstr ""
+
+#: app/templates/base/faq.html:50
+msgid "Enterprise (299 €/month)"
+msgstr ""
+
+#: app/templates/base/faq.html:50
+msgid ""
+"Everything in Team + unlimited members, dedicated Podman stack, opt-in "
+"alternative AI providers (OpenAI / Claude / Gemini with your key), 300 AI"
+" searches/day shared org-wide, priority support and SLA. Beyond 50 active"
+" users, contact us — we adjust the quotas to match your usage."
+msgstr ""
+
+#: app/templates/base/faq.html:52
+msgid ""
+"Daily limits cover the AI provider costs included in your subscription. "
+"They reset every 24 h. The remaining quota is visible on your dashboard."
+msgstr ""
+
+#: app/templates/base/faq.html:60
+msgid "What sources can I index?"
+msgstr ""
+
+#: app/templates/base/faq.html:65
+msgid "Myeline accepts several source types:"
+msgstr ""
+
+#: app/templates/base/faq.html:67
+msgid "Documents"
+msgstr ""
+
+#: app/templates/base/faq.html:67
+msgid ""
+"PDF, Word (.docx), OpenDocument (.odt), Markdown (.md), plain text — from"
+" your personal library."
+msgstr ""
+
+#: app/templates/base/faq.html:68
+msgid ""
+"Google Drive, OneDrive, Dropbox, kDrive, Notion, WebDAV (Nextcloud…), "
+"Amazon S3 — automatic sync."
+msgstr ""
+
+#: app/templates/base/faq.html:69
+msgid "References (Pro)"
+msgstr ""
+
+#: app/templates/base/faq.html:69
+msgid ""
+"Zotero — bibliographic metadata and abstracts synced from your Zotero "
+"library."
+msgstr ""
+
+#: app/templates/base/faq.html:70
+msgid "RSS feeds (Pro)"
+msgstr ""
+
+#: app/templates/base/faq.html:70
+msgid ""
+"Any RSS/Atom feed URL. New articles are indexed automatically at your "
+"chosen frequency."
+msgstr ""
+
+#: app/templates/base/faq.html:71
+msgid "Web scraping (Pro, beta)"
+msgstr ""
+
+#: app/templates/base/faq.html:71
+msgid "Any web page URL. Content is scraped and indexed automatically."
+msgstr ""
+
+#: app/templates/base/faq.html:80
+msgid "What is the watch digest for?"
+msgstr ""
+
+#: app/templates/base/faq.html:85
+msgid ""
+"The digest is a periodic email summarizing new articles from your RSS "
+"feeds and web sources. You choose the frequency (daily, weekly or "
+"monthly) from your settings. It's a convenient way to stay informed "
+"without logging in every day."
+msgstr ""
+
+#: app/templates/base/faq.html:93
+msgid "How do I subscribe?"
+msgstr ""
+
+#: app/templates/base/faq.html:98
+msgid ""
+"Create an account, choose your plan from the home page and follow the "
+"registration steps. Payment is secure via Stripe (credit card, Apple Pay,"
+" Google Pay). Your access is activated immediately after payment."
+msgstr ""
+
+#: app/templates/base/faq.html:100
+msgid "For Team and Enterprise plans,"
+msgstr ""
+
+#: app/templates/base/faq.html:100
+msgid "contact us"
+msgstr ""
+
+#: app/templates/base/faq.html:108
+msgid "Can I cancel anytime?"
+msgstr ""
+
+#: app/templates/base/faq.html:113
+msgid ""
+"Yes, anytime from your settings → \"Manage my subscription\". You retain "
+"access until the end of the already paid period."
+msgstr ""
+
+#: app/templates/base/faq.html:121
+msgid "Is my subscription automatically renewed?"
+msgstr ""
+
+#: app/templates/base/faq.html:126
+msgid ""
+"Yes, monthly subscriptions are automatically renewed to avoid any "
+"interruption. Cancellable at any time from your settings."
+msgstr ""
+
+#: app/templates/base/faq.html:134
+msgid "Are my documents confidential?"
+msgstr ""
+
+#: app/templates/base/faq.html:139
+msgid "Here is the precise breakdown:"
+msgstr ""
+
+#: app/templates/base/faq.html:141
+msgid "Indexing & search"
+msgstr ""
+
+#: app/templates/base/faq.html:141
+#, python-format
+msgid ""
+"100%% local. Your documents are processed and stored on our servers in "
+"France. No external service is involved in reading or indexing your "
+"files."
+msgstr ""
+
+#: app/templates/base/faq.html:142 app/templates/base/on_premise.html:106
+#: app/templates/base/status.html:8
+msgid "AI synthesis"
+msgstr ""
+
+#: app/templates/base/faq.html:142
+msgid ""
+"Your question and a few relevant excerpts (typically 4–6 short passages, "
+"a few hundred words in total) are sent to the Mistral AI API (France 🇫🇷, "
+"EU-hosted) to generate the answer. Your full documents are never "
+"transmitted, and your data never leaves the European Union."
+msgstr ""
+
+#: app/templates/base/faq.html:143
+msgid "No model training"
+msgstr ""
+
+#: app/templates/base/faq.html:143
+msgid ""
+"Mistral AI contractually commits via its API terms not to use your data "
+"to train or improve its models."
+msgstr ""
+
+#: app/templates/base/faq.html:144
+msgid "OpenAI, Anthropic, Google Gemini"
+msgstr ""
+
+#: app/templates/base/faq.html:144
+msgid ""
+"Not used by default. Only available as opt-in alternatives for Enterprise"
+" organisations that bring their own API key."
+msgstr ""
+
+#: app/templates/base/faq.html:146
+msgid ""
+"Enterprise clients who require zero external API calls can deploy Myeline"
+" on-premise on their own infrastructure."
+msgstr ""
+
+#: app/templates/base/faq.html:148
+msgid "See our"
+msgstr ""
+
+#: app/templates/base/faq.html:148
+msgid "for details."
+msgstr ""
+
+#: app/templates/base/faq.html:156
+msgid "Can I get an invoice?"
+msgstr ""
+
+#: app/templates/base/faq.html:161
+msgid ""
+"Yes, an invoice is automatically generated for each payment, available in"
+" your settings via \"Manage my subscription\"."
+msgstr ""
+
+#: app/templates/base/faq.html:169
+msgid "I forgot my password"
+msgstr ""
+
+#: app/templates/base/faq.html:174
+msgid ""
+"On the login page, click \"Forgot password?\" to receive a reset link by "
+"email."
+msgstr ""
+
+#: app/templates/base/faq.html:182
+msgid "Can Myeline be used on mobile?"
+msgstr ""
+
+#: app/templates/base/faq.html:187
+msgid ""
+"Yes, the site is fully responsive. There is no dedicated app, but you can"
+" add it to your home screen:"
+msgstr ""
+
+#: app/templates/base/faq.html:189
+msgid "Safari → share icon → \"Add to Home Screen\"."
+msgstr ""
+
+#: app/templates/base/faq.html:190
+msgid "Chrome → three dots → \"Add to Home Screen\"."
+msgstr ""
+
+#: app/templates/base/faq.html:199
+msgid "I didn't find my answer, how can I contact you?"
+msgstr ""
+
+#: app/templates/base/faq.html:204
+msgid "Via the"
+msgstr ""
+
+#: app/templates/base/faq.html:204 app/templates/base/legal_mentions.html:10
+#: app/templates/base/legal_mentions.html:28
+#: app/templates/base/legal_mentions.html:42
+msgid "contact form"
+msgstr ""
+
+#: app/templates/base/faq.html:204
+msgid "We usually reply within 48 business hours."
+msgstr ""
+
+#: app/templates/base/home.html:12
+msgid ""
+"Myeline unifies your Drives, Zotero and RSS feeds into a single knowledge"
+" base. Query your professional memory in natural language, with the "
+"security of local indexing."
+msgstr ""
+
+#: app/templates/base/home.html:25
+msgid "Document search"
+msgstr ""
+
+#: app/templates/base/home.html:35 app/templates/org/workspace.html:37
+#: app/templates/user/dashboard.html:78 app/templates/user/rag_search.html:176
+#: app/templates/user/rag_search.html:243
+msgid "Search"
+msgstr ""
+
+#: app/templates/base/home.html:40
+msgid "Feature reserved for subscribers"
+msgstr ""
+
+#: app/templates/base/home.html:42
+msgid "Create an account"
+msgstr ""
+
+#: app/templates/base/home.html:52
+msgid "With subscription"
+msgstr ""
+
+#: app/templates/base/home.html:53
+msgid "You also get access to"
+msgstr ""
+
+#: app/templates/base/home.html:59
+msgid "Cloud sync"
+msgstr ""
+
+#: app/templates/base/home.html:60
+msgid ""
+"Connect Google Drive, OneDrive, Dropbox, kDrive or Zotero. Your documents"
+" are automatically indexed and searchable with AI."
+msgstr ""
+
+#: app/templates/base/home.html:66
+msgid "Team sharing"
+msgstr ""
+
+#: app/templates/base/home.html:67
+msgid ""
+"Share sources and documents with your colleagues within your "
+"organisation. Each member has their own private workspace."
+msgstr ""
+
+#: app/templates/base/home.html:73
+msgid "Watch digest"
+msgstr ""
+
+#: app/templates/base/home.html:74
+msgid ""
+"A summary of new content from your sources, at the frequency of your "
+"choice: daily, weekly, or monthly."
+msgstr ""
+
+#: app/templates/base/home.html:80
+msgid "Custom sources"
+msgstr ""
+
+#: app/templates/base/home.html:81
+msgid ""
+"Add any URL (RSS feed or web page) to your watch. Articles are indexed "
+"exclusively for you."
+msgstr ""
+
+#: app/templates/base/home.html:89
+msgid "Privacy & security"
+msgstr ""
+
+#: app/templates/base/home.html:90
+msgid "Transparent by design."
+msgstr ""
+
+#: app/templates/base/home.html:92
+msgid ""
+"Your documents are indexed and searched locally — embedding runs on our "
+"servers, in France. Only when you ask a question, a short excerpt (never "
+"your full documents) is sent to the Mistral AI API (a French provider, "
+"EU-hosted) for synthesis. Mistral AI contractually commits to not "
+"training its models on API data. Your data never leaves the European "
+"Union."
+msgstr ""
+
+#: app/templates/base/home.html:98
+msgid "Local indexing"
+msgstr ""
+
+#: app/templates/base/home.html:99
+msgid ""
+"Document indexing and semantic search run entirely on our infrastructure "
+"in France. Your files never leave our servers."
+msgstr ""
+
+#: app/templates/base/home.html:105
+msgid "Controlled AI synthesis"
+msgstr ""
+
+#: app/templates/base/home.html:106
+msgid ""
+"Only your question and a handful of relevant excerpts reach the Mistral "
+"AI API (France 🇫🇷, EU-hosted). Not your full documents — a few hundred "
+"words at most, strictly to generate the answer."
+msgstr ""
+
+#: app/templates/base/home.html:112
+msgid "Hosted in France"
+msgstr ""
+
+#: app/templates/base/home.html:113
+msgid ""
+"French infrastructure, subject to European law (GDPR). No advertising, no"
+" data resale. Your data does not fund advertisers."
+msgstr ""
+
+#: app/templates/base/home.html:119
+msgid "OAuth & 2FA"
+msgstr ""
+
+#: app/templates/base/home.html:120
+msgid ""
+"Sign in with Google, Microsoft or Apple. Enable TOTP two-factor "
+"authentication for an extra layer of protection."
+msgstr ""
+
+#: app/templates/base/home.html:126
+msgid "Need zero external API calls?"
+msgstr ""
+
+#: app/templates/base/home.html:127
+msgid "Discover the Sovereign plan"
+msgstr ""
+
+#: app/templates/base/home.html:128
+msgid "— fully local AI, deployed on your own infrastructure."
+msgstr ""
+
+#: app/templates/base/home.html:136 app/templates/log/register.html:16
+msgid "Choose your plan"
+msgstr ""
+
+#: app/templates/base/home.html:139 app/templates/base/pricing.html:26
+msgid "Billing period"
+msgstr ""
+
+#: app/templates/base/home.html:141 app/templates/base/pricing.html:28
+#: app/templates/user/dashboard.html:227 app/templates/user/dashboard.html:240
+#: app/templates/user/dashboard.html:253 app/templates/user/dashboard.html:266
+#: app/templates/user/dashboard.html:987 app/templates/user/scrapers.html:147
+msgid "Monthly"
+msgstr ""
+
+#: app/templates/base/home.html:144 app/templates/base/pricing.html:31
+msgid "Yearly"
+msgstr ""
+
+#: app/templates/base/home.html:158
+msgid "Standard plan"
+msgstr ""
+
+#: app/templates/base/home.html:161 app/templates/base/pricing.html:43
+msgid "Individual use"
+msgstr ""
+
+#: app/templates/base/home.html:163 app/templates/base/home.html:165
+#: app/templates/base/home.html:201 app/templates/base/home.html:203
+#: app/templates/base/home.html:233 app/templates/base/home.html:235
+#: app/templates/base/home.html:269 app/templates/base/home.html:271
+#: app/templates/base/pricing.html:45 app/templates/base/pricing.html:47
+#: app/templates/base/pricing.html:78 app/templates/base/pricing.html:80
+#: app/templates/base/pricing.html:104 app/templates/base/pricing.html:106
+#: app/templates/base/pricing.html:130 app/templates/base/pricing.html:132
+#: app/templates/log/register.html:22 app/templates/log/register.html:33
+#: app/templates/log/register.html:40 app/templates/log/register.html:47
+msgid "mo"
+msgstr ""
+
+#: app/templates/base/home.html:164 app/templates/base/home.html:202
+#: app/templates/base/home.html:234 app/templates/base/home.html:270
+#: app/templates/base/pricing.html:46 app/templates/base/pricing.html:79
+#: app/templates/base/pricing.html:105 app/templates/base/pricing.html:131
+msgid "yr"
+msgstr ""
+
+#: app/templates/base/home.html:168 app/templates/base/home.html:170
+#: app/templates/base/home.html:206 app/templates/base/home.html:208
+#: app/templates/base/home.html:238 app/templates/base/home.html:240
+#: app/templates/base/pricing.html:50 app/templates/base/pricing.html:52
+#: app/templates/base/pricing.html:83 app/templates/base/pricing.html:85
+#: app/templates/base/pricing.html:109 app/templates/base/pricing.html:111
+#, python-format
+msgid "Annual: %(price)s/year (−20%%)"
+msgstr ""
+
+#: app/templates/base/home.html:169 app/templates/base/home.html:207
+#: app/templates/base/home.html:239 app/templates/base/pricing.html:51
+#: app/templates/base/pricing.html:84 app/templates/base/pricing.html:110
+#: app/templates/base/pricing.html:136
+#, python-format
+msgid "Billed yearly · saves %(amount)s/year"
+msgstr ""
+
+#: app/templates/base/home.html:173
+msgid "30 AI searches/day (5/min · 15/h)"
+msgstr ""
+
+#: app/templates/base/home.html:174
+msgid "Cloud sync — 1 connection · 100 indexed docs"
+msgstr ""
+
+#: app/templates/base/home.html:175
+msgid "RSS/web sources — 50 articles per source"
+msgstr ""
+
+#: app/templates/base/home.html:188
+msgid "Pro plan"
+msgstr ""
+
+#: app/templates/base/home.html:192 app/templates/base/pricing.html:69
+#: app/templates/log/register.html:28 app/templates/payment/resubscribe.html:48
+msgid "Recommended"
+msgstr ""
+
+#: app/templates/base/home.html:196 app/templates/base/pricing.html:73
+msgid "15 days free trial"
+msgstr ""
+
+#: app/templates/base/home.html:199 app/templates/base/pricing.html:76
+msgid "High quotas · Custom sources"
+msgstr ""
+
+#: app/templates/base/home.html:211
+msgid "Everything in Standard"
+msgstr ""
+
+#: app/templates/base/home.html:212
+msgid "60 AI searches/day (10/min · 30/h) · Priority queue"
+msgstr ""
+
+#: app/templates/base/home.html:213
+msgid "Cloud sync — unlimited connections · 1,000 indexed docs"
+msgstr ""
+
+#: app/templates/base/home.html:214
+msgid "Custom RSS/web sources — up to 50 · 200 articles/source"
+msgstr ""
+
+#: app/templates/base/home.html:215
+msgid "Watch digest — daily, weekly or monthly"
+msgstr ""
+
+#: app/templates/base/home.html:228
+msgid "Team plan"
+msgstr ""
+
+#: app/templates/base/home.html:231 app/templates/base/pricing.html:102
+msgid "Up to 10 users"
+msgstr ""
+
+#: app/templates/base/home.html:243
+msgid "Everything in Pro"
+msgstr ""
+
+#: app/templates/base/home.html:244
+msgid "120 AI searches/day shared (15/min · 50/h)"
+msgstr ""
+
+#: app/templates/base/home.html:245
+msgid "Cloud sync — unlimited connections · 5,000 indexed docs"
+msgstr ""
+
+#: app/templates/base/home.html:246
+msgid "Custom sources — up to 200 · unlimited articles"
+msgstr ""
+
+#: app/templates/base/home.html:247
+msgid "Shared organisation workspace"
+msgstr ""
+
+#: app/templates/base/home.html:248
+msgid "Member management (≤ 10)"
+msgstr ""
+
+#: app/templates/base/home.html:261
+msgid "Enterprise plan"
+msgstr ""
+
+#: app/templates/base/home.html:264 app/templates/base/pricing.html:125
+msgid "Dedicated stack · OIDC · audit · BYOK LLM"
+msgstr ""
+
+#: app/templates/base/home.html:266 app/templates/base/pricing.html:127
+msgid "from"
+msgstr ""
+
+#: app/templates/base/home.html:274
+msgid "Everything in Team"
+msgstr ""
+
+#: app/templates/base/home.html:275
+msgid "300 AI searches/day shared (30/min · 100/h)"
+msgstr ""
+
+#: app/templates/base/home.html:276
+msgid "Custom sources — unlimited · 20,000 indexed docs · 500 MB/file"
+msgstr ""
+
+#: app/templates/base/home.html:277
+msgid "Custom seats quota (negotiated)"
+msgstr ""
+
+#: app/templates/base/home.html:278
+msgid "Sync every 15 min"
+msgstr ""
+
+#: app/templates/base/home.html:279
+msgid "Priority support & custom SLA"
+msgstr ""
+
+#: app/templates/base/home.html:280
+msgid ""
+"Choose your AI provider (Mistral by default — opt-in OpenAI / Gemini / "
+"Claude)"
+msgstr ""
+
+#: app/templates/base/home.html:283
+msgid "On-premise / sovereign deployment available — separate quote."
+msgstr ""
+
+#: app/templates/base/home.html:300
+msgid "View detailed pricing & comparison →"
+msgstr ""
+
+#: app/templates/base/home.html:308
+msgid "They talk about it better than us"
+msgstr ""
+
+#: app/templates/base/home.html:312
+msgid ""
+"The AI search answers my questions in under a minute, with cited sources."
+" I use it several times a day."
+msgstr ""
+
+#: app/templates/base/home.html:313
+msgid "Dr. Marie T., researcher"
+msgstr ""
+
+#: app/templates/base/home.html:316
+msgid ""
+"I connected my Google Drive and Zotero. Everything is indexed "
+"automatically — I find any document in seconds with AI search."
+msgstr ""
+
+#: app/templates/base/home.html:317
+msgid "Sophie R., legal manager"
+msgstr ""
+
+#: app/templates/base/home.html:320
+msgid ""
+"I monitor about twenty specialised sources. New articles are indexed "
+"automatically — nothing to do on my end."
+msgstr ""
+
+#: app/templates/base/home.html:321
+msgid "Dr. Léa M., R&D director"
+msgstr ""
+
+#: app/templates/base/home.html:324
+msgid ""
+"I added RSS feeds from my journals. The day after publication, the "
+"articles are already searchable in AI search."
+msgstr ""
+
+#: app/templates/base/home.html:325
+msgid "Marc D., independent consultant"
+msgstr ""
+
+#: app/templates/base/home.html:328
+msgid ""
+"Indexing is done on French servers, and the AI synthesis only transmits a"
+" few excerpts to the API — not our full documents. A level of "
+"transparency rare in this sector."
+msgstr ""
+
+#: app/templates/base/home.html:329
+msgid "Isabelle C., compliance director"
+msgstr ""
+
+#: app/templates/base/home.html:340
+msgid "Previous"
+msgstr ""
+
+#: app/templates/base/home.html:359
+msgid "Next"
+msgstr ""
+
+#: app/templates/base/home.html:371
+msgid ""
+"No advertising. No commercial partnerships. Our only clients are our "
+"subscribers."
+msgstr ""
+
+#: app/templates/base/home.html:375
+msgid "Reliable sources"
+msgstr ""
+
+#: app/templates/base/home.html:376
+msgid ""
+"Index your own sources or use preconfigured feeds. Each answer cites its "
+"sources with a relevance score."
+msgstr ""
+
+#: app/templates/base/home.html:380
+msgid "Your documents, your rules"
+msgstr ""
+
+#: app/templates/base/home.html:381
+msgid ""
+"Connect your cloud drives and let Myeline index your documents. Query "
+"them in natural language. Nothing leaves your workspace."
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:7
+msgid "Site publisher:"
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:10
+msgid "via the"
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:12
+msgid "Publication director:"
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:15
+msgid "Development"
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:16
+msgid "Technologies used:"
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:19
+msgid ""
+"All content on the site (texts, images, logo, source code) is the "
+"exclusive property of Myeline, unless otherwise indicated. Any "
+"reproduction, representation, modification, publication, transmission or "
+"distortion, total or partial, is prohibited without prior authorization."
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:22
+msgid ""
+"Myeline strives to provide reliable information, but does not guarantee "
+"the accuracy, completeness or timeliness of the information provided. The"
+" use of content is the sole responsibility of the user."
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:24
+msgid "Advertising"
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:25
+msgid "The site does not host any advertising and is completely independent."
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:28
+msgid ""
+"The data collected (email address, preferences, etc.) is used solely for "
+"the management of the Myeline service. In accordance with the GDPR, you "
+"have a right of access, rectification and deletion of your data. To "
+"exercise it, use the"
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:30
+msgid "Cookies"
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:31
+msgid ""
+"This site uses functional and analytics cookies. On your first visit, a "
+"banner allows you to accept or refuse non-essential cookies. You can "
+"change your choice at any time via your browser settings."
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:31
+msgid "For more information, see our"
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:31
+msgid "cookie policy"
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:33
+msgid "Hosting"
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:34
+msgid "The site is hosted by:"
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:42
+msgid "For any complaint or question, please use the"
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:44
+#: app/templates/base/privacy_policy.html:21
+#: app/templates/base/privacy_policy.html:371
+msgid "Last updated:"
+msgstr ""
+
+#: app/templates/base/legal_mentions.html:44
+msgid "May 2026"
+msgstr ""
+
+#: app/templates/base/on_premise.html:2
+msgid "Sovereign plan — On-premise deployment"
+msgstr ""
+
+#: app/templates/base/on_premise.html:8
+msgid "On-premise"
+msgstr ""
+
+#: app/templates/base/on_premise.html:10
+msgid "Sovereign plan"
+msgstr ""
+
+#: app/templates/base/on_premise.html:13
+msgid ""
+"Myeline deployed on your own infrastructure. No external API call. Your "
+"data never leaves your servers — ever."
+msgstr ""
+
+#: app/templates/base/on_premise.html:16 app/templates/base/on_premise.html:134
+#: app/templates/base/pricing.html:357
+msgid "Request a quote"
+msgstr ""
+
+#: app/templates/base/on_premise.html:26
+msgid "Architecture"
+msgstr ""
+
+#: app/templates/base/on_premise.html:27
+msgid "How does it work?"
+msgstr ""
+
+#: app/templates/base/on_premise.html:32
+msgid "Deployed on your servers"
+msgstr ""
+
+#: app/templates/base/on_premise.html:34
+msgid ""
+"Myeline is installed as Podman containers (rootless, OCI-standard) on "
+"your own hardware or private cloud — on-premise, data centre, or VPS. No "
+"Myeline cloud involved."
+msgstr ""
+
+#: app/templates/base/on_premise.html:39
+msgid "Fully local AI"
+msgstr ""
+
+#: app/templates/base/on_premise.html:41
+#, python-format
+msgid ""
+"A high-performance local LLM (Mistral, Llama 3, Qwen or equivalent) runs "
+"on your GPU. Embedding, retrieval, and synthesis — 100%% on your "
+"infrastructure. Zero external API call."
+msgstr ""
+
+#: app/templates/base/on_premise.html:46
+msgid "Air-gapped or connected — your choice"
+msgstr ""
+
+#: app/templates/base/on_premise.html:48
+msgid ""
+"For maximum security, the stack can operate with no internet access at "
+"all — all AI inference is local. If your team needs to ingest from "
+"external sources (Google Drive, OneDrive, Dropbox, Zotero…), we can "
+"install with outbound connectivity enabled — you keep AI and data local "
+"while pulling documents from the cloud services you already use."
+msgstr ""
+
+#: app/templates/base/on_premise.html:60
+msgid "What's included"
+msgstr ""
+
+#: app/templates/base/on_premise.html:61
+msgid "Everything in Enterprise, plus"
+msgstr ""
+
+#: app/templates/base/on_premise.html:65
+msgid "Zero external API call"
+msgstr ""
+
+#: app/templates/base/on_premise.html:65
+msgid ""
+"No request ever leaves your network. Document indexing, semantic search, "
+"AI synthesis — all local."
+msgstr ""
+
+#: app/templates/base/on_premise.html:66
+msgid "Local LLM on your GPU"
+msgstr ""
+
+#: app/templates/base/on_premise.html:66
+msgid ""
+"We deploy and configure a high-performance open-source model on your "
+"hardware. You choose the model, we handle the setup."
+msgstr ""
+
+#: app/templates/base/on_premise.html:67
+msgid "Full source code access"
+msgstr ""
+
+#: app/templates/base/on_premise.html:67
+msgid ""
+"You get the full application source code. No vendor lock-in. Forkable and"
+" auditable."
+msgstr ""
+
+#: app/templates/base/on_premise.html:68
+msgid "Installation & configuration"
+msgstr ""
+
+#: app/templates/base/on_premise.html:68
+msgid ""
+"Dedicated installation session, environment configuration, Ollama model "
+"tuning, SSL/TLS setup."
+msgstr ""
+
+#: app/templates/base/on_premise.html:69
+msgid "Updates & maintenance"
+msgstr ""
+
+#: app/templates/base/on_premise.html:69
+msgid ""
+"You choose your update cadence. We provide new releases; you apply them "
+"when ready."
+msgstr ""
+
+#: app/templates/base/on_premise.html:70
+msgid "Custom SLA"
+msgstr ""
+
+#: app/templates/base/on_premise.html:70
+msgid ""
+"Response time, availability commitments and escalation paths defined by "
+"contract."
+msgstr ""
+
+#: app/templates/base/on_premise.html:71
+msgid "Unlimited users"
+msgstr ""
+
+#: app/templates/base/on_premise.html:71
+msgid "No per-seat cost. Deploy for your entire organisation."
+msgstr ""
+
+#: app/templates/base/on_premise.html:72
+msgid "Regulatory compliance"
+msgstr ""
+
+#: app/templates/base/on_premise.html:72
+msgid ""
+"Ideal for health (HDS), legal, defence, finance and any sector where data"
+" sovereignty is non-negotiable."
+msgstr ""
+
+#: app/templates/base/on_premise.html:94
+msgid "Cloud vs Sovereign"
+msgstr ""
+
+#: app/templates/base/on_premise.html:100
+msgid "Cloud (Standard–Enterprise)"
+msgstr ""
+
+#: app/templates/base/on_premise.html:101
+msgid "Sovereign"
+msgstr ""
+
+#: app/templates/base/on_premise.html:106
+#: app/templates/base/on_premise.html:107
+msgid "Mistral AI API (France, EU 🇫🇷)"
+msgstr ""
+
+#: app/templates/base/on_premise.html:106
+msgid "Local LLM — your servers"
+msgstr ""
+
+#: app/templates/base/on_premise.html:107
+msgid "Embedding / indexing"
+msgstr ""
+
+#: app/templates/base/on_premise.html:107
+msgid "Local — your servers"
+msgstr ""
+
+#: app/templates/base/on_premise.html:108
+msgid "Data storage"
+msgstr ""
+
+#: app/templates/base/on_premise.html:108
+msgid "Our French infrastructure"
+msgstr ""
+
+#: app/templates/base/on_premise.html:108
+msgid "Your infrastructure"
+msgstr ""
+
+#: app/templates/base/on_premise.html:109
+msgid "External API call"
+msgstr ""
+
+#: app/templates/base/on_premise.html:109
+msgid "Mistral for synthesis & embedding"
+msgstr ""
+
+#: app/templates/base/on_premise.html:109
+msgid "None (air-gapped) — your choice"
+msgstr ""
+
+#: app/templates/base/on_premise.html:110
+msgid "Internet required"
+msgstr ""
+
+#: app/templates/base/on_premise.html:110
+msgid "Yes"
+msgstr ""
+
+#: app/templates/base/on_premise.html:110
+msgid "Optional (air-gapped possible)"
+msgstr ""
+
+#: app/templates/base/on_premise.html:111
+msgid "GDPR sub-processor"
+msgstr ""
+
+#: app/templates/base/on_premise.html:111
+msgid "Stripe, Brevo, Mistral AI (FR/EU)"
+msgstr ""
+
+#: app/templates/base/on_premise.html:111
+msgid "None (or your own)"
+msgstr ""
+
+#: app/templates/base/on_premise.html:112
+msgid "Ideal for"
+msgstr ""
+
+#: app/templates/base/on_premise.html:112
+msgid "Most organisations"
+msgstr ""
+
+#: app/templates/base/on_premise.html:112
+msgid "Health, legal, defence, finance…"
+msgstr ""
+
+#: app/templates/base/on_premise.html:129
+msgid "Interested?"
+msgstr ""
+
+#: app/templates/base/on_premise.html:131
+msgid ""
+"Tell us about your infrastructure, team size and security requirements — "
+"we'll get back to you within 48 hours with a quote."
+msgstr ""
+
+#: app/templates/base/on_premise.html:137
+msgid "Back to pricing"
+msgstr ""
+
+#: app/templates/base/pricing.html:13
+msgid "Simple, transparent pricing"
+msgstr ""
+
+#: app/templates/base/pricing.html:16
+msgid ""
+"All plans include on-server document understanding, Mistral AI synthesis "
+"(French provider, EU-hosted), end-to-end encryption of sensitive data, "
+"and unlimited cloud connections from the Pro tier upward."
+msgstr ""
+
+#: app/templates/base/pricing.html:19
+msgid "Try Pro free for 15 days — no credit card required."
+msgstr ""
+
+#: app/templates/base/pricing.html:22
+#, python-format
+msgid "Yearly billing: −20%% on every paid plan. Switchable any time."
+msgstr ""
+
+#: app/templates/base/pricing.html:57 app/templates/base/pricing.html:116
+msgid "Start"
+msgstr ""
+
+#: app/templates/base/pricing.html:90
+msgid "Start 15-day free trial"
+msgstr ""
+
+#: app/templates/base/pricing.html:93
+msgid "No credit card required"
+msgstr ""
+
+#: app/templates/base/pricing.html:135 app/templates/base/pricing.html:137
+msgid "50 seats · custom quota & SLA"
+msgstr ""
+
+#: app/templates/base/pricing.html:145
+msgid "Need a custom contract?"
+msgstr ""
+
+#: app/templates/base/pricing.html:146
+msgid "Enterprise quote request"
+msgstr ""
+
+#: app/templates/base/pricing.html:155
+msgid "Feature-by-feature comparison"
+msgstr ""
+
+#: app/templates/base/pricing.html:171
+msgid "AI search"
+msgstr ""
+
+#: app/templates/base/pricing.html:173
+msgid "RAG queries / day"
+msgstr ""
+
+#: app/templates/base/pricing.html:176 app/templates/base/pricing.html:177
+msgid "shared"
+msgstr ""
+
+#: app/templates/base/pricing.html:180
+msgid "Burst rate (per minute)"
+msgstr ""
+
+#: app/templates/base/pricing.html:187
+msgid "Synthesis LLM"
+msgstr ""
+
+#: app/templates/base/pricing.html:191
+msgid "Choice: Mistral / OpenAI / Claude / Gemini (BYOK)"
+msgstr ""
+
+#: app/templates/base/pricing.html:194
+msgid "Multi-turn conversations"
+msgstr ""
+
+#: app/templates/base/pricing.html:201
+msgid "Strict / relaxed mode toggle"
+msgstr ""
+
+#: app/templates/base/pricing.html:208
+msgid "Single-document chat"
+msgstr ""
+
+#: app/templates/base/pricing.html:216
+msgid "Sources & Library"
+msgstr ""
+
+#: app/templates/base/pricing.html:218
+msgid "Personal documents"
+msgstr ""
+
+#: app/templates/base/pricing.html:225
+msgid "Cloud connections"
+msgstr ""
+
+#: app/templates/base/pricing.html:232
+msgid "Cloud sync cadence"
+msgstr ""
+
+#: app/templates/base/pricing.html:233
+msgid "daily"
+msgstr ""
+
+#: app/templates/base/pricing.html:234
+msgid "every 4 h"
+msgstr ""
+
+#: app/templates/base/pricing.html:235
+msgid "hourly (configurable)"
+msgstr ""
+
+#: app/templates/base/pricing.html:236
+msgid "every 15 min (configurable)"
+msgstr ""
+
+#: app/templates/base/pricing.html:239
+msgid "RSS / web custom sources"
+msgstr ""
+
+#: app/templates/base/pricing.html:240 app/templates/base/pricing.html:241
+msgid "source"
+msgstr ""
+
+#: app/templates/base/pricing.html:247
+msgid "Watch & alerts"
+msgstr ""
+
+#: app/templates/base/pricing.html:249
+msgid "Watch digest (daily/weekly/monthly)"
+msgstr ""
+
+#: app/templates/base/pricing.html:256
+msgid "Keyword watch alerts"
+msgstr ""
+
+#: app/templates/base/pricing.html:258
+msgid "up to 20 active"
+msgstr ""
+
+#: app/templates/base/pricing.html:259
+msgid "up to 50 active"
+msgstr ""
+
+#: app/templates/base/pricing.html:260
+msgid "up to 200 active"
+msgstr ""
+
+#: app/templates/base/pricing.html:264
+msgid "Team & SSO"
+msgstr ""
+
+#: app/templates/base/pricing.html:266
+msgid "Organisation workspace"
+msgstr ""
+
+#: app/templates/base/pricing.html:273 app/templates/org/workspace.html:133
+msgid "Members"
+msgstr ""
+
+#: app/templates/base/pricing.html:277
+msgid "Custom quota (negotiated)"
+msgstr ""
+
+#: app/templates/base/pricing.html:280
+msgid "OIDC SSO (Azure AD / Keycloak / Okta)"
+msgstr ""
+
+#: app/templates/base/pricing.html:287
+msgid "Dedicated isolated stack"
+msgstr ""
+
+#: app/templates/base/pricing.html:295
+msgid "Security & compliance"
+msgstr ""
+
+#: app/templates/base/pricing.html:297
+msgid "Admin audit log"
+msgstr ""
+
+#: app/templates/base/pricing.html:304
+msgid "Daily off-host backups"
+msgstr ""
+
+#: app/templates/base/pricing.html:313
+msgid "Channel"
+msgstr ""
+
+#: app/templates/base/pricing.html:314 app/templates/base/pricing.html:315
+#: app/templates/base/pricing.html:316 app/templates/org/login.html:33
+#: app/templates/user/2fa_setup.html:79
+msgid "Email"
+msgstr ""
+
+#: app/templates/base/pricing.html:317
+msgid "Email · priority · custom SLA"
+msgstr ""
+
+#: app/templates/base/pricing.html:320
+msgid "Billing"
+msgstr ""
+
+#: app/templates/base/pricing.html:322
+msgid "Free trial"
+msgstr ""
+
+#: app/templates/base/pricing.html:324
+msgid "15 days · no CC"
+msgstr ""
+
+#: app/templates/base/pricing.html:326
+msgid "On request"
+msgstr ""
+
+#: app/templates/base/pricing.html:329
+msgid "Annual billing discount"
+msgstr ""
+
+#: app/templates/base/pricing.html:333
+msgid "Negotiated"
+msgstr ""
+
+#: app/templates/base/pricing.html:343
+msgid "Sovereign / on-premise"
+msgstr ""
+
+#: app/templates/base/pricing.html:345
+#, python-format
+msgid "100%% local processing — no API call leaves your infrastructure"
+msgstr ""
+
+#: app/templates/base/pricing.html:347
+msgid ""
+"For regulated industries (health, defence, legal, finance, public sector)"
+" Myeline ships a sovereign mode that routes every LLM synthesis to a "
+"local Ollama instance. Combined with disk-level LUKS and outbound "
+"firewall blocks, you get a full air-gappable install."
+msgstr ""
+
+#: app/templates/base/pricing.html:350
+msgid ""
+"Includes: deployment on your infrastructure, signed DPA, custom SLA, "
+"dedicated support, training, and version upgrades."
+msgstr ""
+
+#: app/templates/base/pricing.html:354
+msgid "Learn more about the sovereign edition"
+msgstr ""
+
+#: app/templates/base/pricing.html:356
+msgid "Sovereign deployment quote"
+msgstr ""
+
+#: app/templates/base/pricing.html:385
+msgid "How does the 15-day free trial work?"
+msgstr ""
+
+#: app/templates/base/pricing.html:390
+msgid ""
+"Click Start on the Pro card — no credit card required. You get full Pro "
+"features for 15 days (custom RSS sources, watch alerts, multi-turn chat, "
+"no daily quota). On day 16 your account switches to read-only: you can "
+"still see your indexed documents and past queries, but you'll need to "
+"pick a paid plan to keep indexing or querying. Your data is preserved for"
+" 45 days after the trial ends, then permanently deleted (GDPR Art. 5)."
+msgstr ""
+
+#: app/templates/base/pricing.html:400
+msgid "Where is my data stored?"
+msgstr ""
+
+#: app/templates/base/pricing.html:405
+msgid ""
+"Default deployment is on European infrastructure (France). Embeddings "
+"stay local on the Myeline server (Ollama). LLM synthesis hits Mistral AI,"
+" also EU-hosted (France). Sovereign / on-premise deployments never leave "
+"your network."
+msgstr ""
+
+#: app/templates/base/pricing.html:415
+msgid "Can I switch plans at any time?"
+msgstr ""
+
+#: app/templates/base/pricing.html:420
+#, python-format
+msgid ""
+"Yes — upgrades take effect immediately and are pro-rated. Downgrades take"
+" effect at the end of the current billing period. Yearly billing gives "
+"you 20%% off and can be picked at signup or on upgrade."
+msgstr ""
+
+#: app/templates/base/pricing.html:430
+msgid "What happens if I cancel?"
+msgstr ""
+
+#: app/templates/base/pricing.html:435
+msgid ""
+"Your account stays active until the end of the paid period. You can "
+"export all your data (Art. 15 + 20 GDPR ZIP including RAG chunks) at any "
+"time, before or after cancelling. Real account deletion erases data "
+"within 30 days."
+msgstr ""
+
+#: app/templates/base/pricing.html:445
+msgid "Do you train AI models on my data?"
+msgstr ""
+
+#: app/templates/base/pricing.html:450
+msgid ""
+"No. Mistral AI commits contractually not to train on customer API data. "
+"Embeddings are local and never leave the Myeline server. In sovereign "
+"mode, no external AI is called at all."
+msgstr ""
+
+#: app/templates/base/pricing.html:460
+msgid "Why is Enterprise priced from 590 €/month?"
+msgstr ""
+
+#: app/templates/base/pricing.html:465
+msgid ""
+"Enterprise gets an isolated stack, choice of LLM provider with your own "
+"API key, OIDC SSO, signed DPA, custom SLA, dedicated support and "
+"onboarding. The price reflects operational + contractual commitments, not"
+" just quotas. Custom quotas are negotiated based on your team size and "
+"usage profile."
+msgstr ""
+
+#: app/templates/base/pricing.html:475
+msgid "Can I host Myeline myself?"
+msgstr ""
+
+#: app/templates/base/pricing.html:480
+msgid ""
+"On-premise / sovereign deployment is available for organisations that "
+"need their data to never leave their infrastructure — we install on your "
+"servers, sign a DPA, and provide ongoing support and version upgrades. "
+"See the Sovereign edition page for details."
+msgstr ""
+
+#: app/templates/base/pricing.html:488
+msgid "Still have questions?"
+msgstr ""
+
+#: app/templates/base/pricing.html:490
+msgid "Talk to us"
+msgstr ""
+
+#: app/templates/base/status.html:5
+msgid "Database"
+msgstr ""
+
+#: app/templates/base/status.html:6
+msgid "Cache & queue"
+msgstr ""
+
+#: app/templates/base/status.html:7
+msgid "Document understanding"
+msgstr ""
+
+#: app/templates/base/status.html:9
+msgid "Web application"
+msgstr ""
+
+#: app/templates/base/status.html:34
+msgid "System status"
+msgstr ""
+
+#: app/templates/base/status.html:37
+msgid "All systems operational"
+msgstr ""
+
+#: app/templates/base/status.html:38
+msgid "Some services degraded"
+msgstr ""
+
+#: app/templates/base/status.html:39
+msgid "Major outage"
+msgstr ""
+
+#: app/templates/base/status.html:40
+msgid "Status unknown"
+msgstr ""
+
+#: app/templates/base/status.html:44
+msgid "Last check:"
+msgstr ""
+
+#: app/templates/base/status.html:51
+msgid "Current state"
+msgstr ""
+
+#: app/templates/base/status.html:60
+msgid "(not configured on this deployment)"
+msgstr ""
+
+#: app/templates/base/status.html:64
+msgid "operational"
+msgstr ""
+
+#: app/templates/base/status.html:65
+msgid "degraded"
+msgstr ""
+
+#: app/templates/base/status.html:66
+msgid "outage"
+msgstr ""
+
+#: app/templates/base/status.html:67
+msgid "not used"
+msgstr ""
+
+#: app/templates/base/status.html:68
+msgid "unknown"
+msgstr ""
+
+#: app/templates/base/status.html:74
+msgid "End-to-end response time"
+msgstr ""
+
+#: app/templates/base/status.html:83
+msgid "30-day uptime"
+msgstr ""
+
+#: app/templates/base/status.html:92
+msgid "over 30 days"
+msgstr ""
+
+#: app/templates/base/status.html:94
+msgid "no data"
+msgstr ""
+
+#: app/templates/base/status.html:102
+msgid "no sample"
+msgstr ""
+
+#: app/templates/base/status.html:105
+msgid "samples"
+msgstr ""
+
+#: app/templates/base/status.html:127
+msgid "Updated every 5 minutes. For incident communication, contact"
+msgstr ""
+
+#: app/templates/errors/404.html:2 app/templates/errors/404.html:8
+msgid "Page not found"
+msgstr ""
+
+#: app/templates/errors/404.html:10
+msgid "The page you are looking for does not exist or has been moved."
+msgstr ""
+
+#: app/templates/errors/404.html:13 app/templates/errors/500.html:13
+msgid "Back to home"
+msgstr ""
+
+#: app/templates/errors/500.html:2
+msgid "Server error"
+msgstr ""
+
+#: app/templates/errors/500.html:8
+msgid "An error occurred"
+msgstr ""
+
+#: app/templates/errors/500.html:10
+msgid ""
+"Something went wrong on our side. The team has been notified. Please try "
+"again in a few moments."
+msgstr ""
+
+#: app/templates/log/2fa_verify.html:2 app/templates/log/2fa_verify.html:8
+#: app/templates/user/2fa_setup.html:2 app/templates/user/2fa_setup.html:8
+#: app/templates/user/settings.html:82
+msgid "Two-factor authentication"
+msgstr ""
+
+#: app/templates/log/2fa_verify.html:11
+msgid "Enter the 6-digit code from your authenticator app."
+msgstr ""
+
+#: app/templates/log/2fa_verify.html:13
+msgid "A code was sent to your email address."
+msgstr ""
+
+#: app/templates/log/2fa_verify.html:32 app/templates/log/2fa_verify.html:45
+#: app/templates/user/2fa_setup.html:121 app/templates/user/2fa_setup.html:145
+msgid "Verification code"
+msgstr ""
+
+#: app/templates/log/2fa_verify.html:60
+msgid "Verify"
+msgstr ""
+
+#: app/templates/log/2fa_verify.html:65
+#: app/templates/log/forgot_password.html:31
+msgid "Back to login"
+msgstr ""
+
+#: app/templates/log/_social_buttons.html:20
+msgid "or continue with"
+msgstr ""
+
+#: app/templates/log/forgot_password.html:2
+#: app/templates/log/forgot_password.html:9
+msgid "Forgot password"
+msgstr ""
+
+#: app/templates/log/forgot_password.html:10
+msgid "Enter your email and we'll send you a reset link."
+msgstr ""
+
+#: app/templates/log/forgot_password.html:27 app/templates/log/login.html:22
+msgid "Your email"
+msgstr ""
+
+#: app/templates/log/login.html:10
+msgid "Log in to admin area"
+msgstr ""
+
+#: app/templates/log/login.html:12
+msgid "Log in to your account"
+msgstr ""
+
+#: app/templates/log/login.html:32 app/templates/org/login.html:37
+#: app/templates/user/webdav_connect.html:52
+msgid "Password"
+msgstr ""
+
+#: app/templates/log/login.html:43
+msgid "Code received by email"
+msgstr ""
+
+#: app/templates/log/login.html:56
+msgid "No account yet? Register"
+msgstr ""
+
+#: app/templates/log/login.html:59
+msgid "Forgot password?"
+msgstr ""
+
+#: app/templates/log/register.html:2
+msgid "Register"
+msgstr ""
+
+#: app/templates/log/register.html:9
+msgid "Create your account"
+msgstr ""
+
+#: app/templates/log/register.html:57
+msgid "Please fix the errors below."
+msgstr ""
+
+#: app/templates/log/register.html:95
+msgid "At least 8 characters"
+msgstr ""
+
+#: app/templates/log/register.html:97
+msgid "Uppercase, lowercase, number and special character."
+msgstr ""
+
+#: app/templates/log/register.html:110 app/templates/log/register.html:116
+msgid "I accept the"
+msgstr ""
+
+#: app/templates/log/register.html:125
+msgid "Create my account"
+msgstr ""
+
+#: app/templates/log/register.html:129 app/templates/log/register.html:226
+msgid "Continue to payment"
+msgstr ""
+
+#: app/templates/log/register.html:137
+msgid "Already have an account?"
+msgstr ""
+
+#: app/templates/log/register.html:137
+msgid "Log in here"
+msgstr ""
+
+#: app/templates/log/register.html:141
+#: app/templates/log/resend_confirmation_page.html:17
+msgid "Resend confirmation email"
+msgstr ""
+
+#: app/templates/log/register.html:185
+msgid "Please fill in all required fields."
+msgstr ""
+
+#: app/templates/log/register.html:190
+msgid "Passwords do not match."
+msgstr ""
+
+#: app/templates/log/register.html:195
+msgid "You must accept the Terms of sale and Privacy policy."
+msgstr ""
+
+#: app/templates/log/register.html:201
+msgid "Redirecting to Stripe…"
+msgstr ""
+
+#: app/templates/log/register.html:223
+msgid "An error occurred. Please try again."
+msgstr ""
+
+#: app/templates/log/resend_confirmation_page.html:2
+#: app/templates/log/resend_confirmation_page.html:6
+msgid "Email confirmation required"
+msgstr ""
+
+#: app/templates/log/resend_confirmation_page.html:10
+msgid "A confirmation link has been sent to your email address."
+msgstr ""
+
+#: app/templates/log/resend_confirmation_page.html:12
+msgid "Please click the link to activate your account."
+msgstr ""
+
+#: app/templates/log/resend_confirmation_page.html:13
+msgid "Can't find the email? Check your spam folder."
+msgstr ""
+
+#: app/templates/log/resend_confirmation_page.html:32
+#: app/templates/user/settings.html:24
+msgid "Email address"
+msgstr ""
+
+#: app/templates/log/resend_confirmation_page.html:35
+msgid "Resend"
+msgstr ""
+
+#: app/templates/log/reset_password.html:14
+msgid "Set new password"
+msgstr ""
+
+#: app/templates/org/accept_invite_confirm.html:2
+msgid "Confirm invitation"
+msgstr ""
+
+#: app/templates/org/accept_invite_confirm.html:14
+#, python-format
+msgid "Join %(org)s?"
+msgstr ""
+
+#: app/templates/org/accept_invite_confirm.html:22
+#, python-format
+msgid "You have been invited to join the %(org)s organisation as %(email)s."
+msgstr ""
+
+#: app/templates/org/accept_invite_confirm.html:29
+msgid ""
+"Accepting will link this account to the organisation. You will share its "
+"workspace (members, scrapers, cloud documents). You can leave at any time"
+" from your account settings."
+msgstr ""
+
+#: app/templates/org/accept_invite_confirm.html:35
+msgid "Accept and join"
+msgstr ""
+
+#: app/templates/org/accept_invite_confirm.html:38
+msgid "Refuse"
+msgstr ""
+
+#: app/templates/org/login.html:9 app/templates/user/dashboard.html:100
+msgid "Team workspace"
+msgstr ""
+
+#: app/templates/org/login.html:24
+msgid "Log in via SSO"
+msgstr ""
+
+#: app/templates/org/login.html:26
+msgid "or with your password"
+msgstr ""
+
+#: app/templates/org/workspace.html:12 app/templates/user/dashboard.html:58
+msgid "member(s)"
+msgstr ""
+
+#: app/templates/org/workspace.html:18
+msgid "My space"
+msgstr ""
+
+#: app/templates/org/workspace.html:35
+msgid "Search team documents…"
+msgstr ""
+
+#: app/templates/org/workspace.html:45 app/templates/org/workspace.html:58
+#: app/templates/user/cloud_connections.html:2
+#: app/templates/user/cloud_connections.html:11
+#: app/templates/user/cloud_connections.html:14
+#: app/templates/user/dashboard.html:204
+msgid "Cloud services"
+msgstr ""
+
+#: app/templates/org/workspace.html:49
+msgid "Indexed documents"
+msgstr ""
+
+#: app/templates/org/workspace.html:61 app/templates/user/dashboard.html:40
+msgid "Manage"
+msgstr ""
+
+#: app/templates/org/workspace.html:79
+msgid "indexed"
+msgstr ""
+
+#: app/templates/org/workspace.html:79
+msgid "total"
+msgstr ""
+
+#: app/templates/org/workspace.html:83
+#: app/templates/user/cloud_connections.html:87
+#: app/templates/user/cloud_connections.html:184
+msgid "Syncing…"
+msgstr ""
+
+#: app/templates/org/workspace.html:83 app/templates/user/settings.html:85
+msgid "Active"
+msgstr ""
+
+#: app/templates/org/workspace.html:90 app/templates/user/library.html:38
+msgid "No cloud service connected yet."
+msgstr ""
+
+#: app/templates/org/workspace.html:91
+#: app/templates/user/cloud_connections.html:115
+#: app/templates/user/library.html:39 app/templates/user/library.html:198
+msgid "Connect a service"
+msgstr ""
+
+#: app/templates/org/workspace.html:93
+msgid "No cloud service connected. Contact your organisation admin."
+msgstr ""
+
+#: app/templates/org/workspace.html:103
+msgid "RSS Sources"
+msgstr ""
+
+#: app/templates/org/workspace.html:105 app/templates/org/workspace.html:170
+#: app/templates/user/scrapers.html:62 app/templates/user/scrapers.html:228
+msgid "Add"
+msgstr ""
+
+#: app/templates/org/workspace.html:113 app/templates/user/scrapers.html:125
+#, python-format
+msgid "%(num)d article"
+msgid_plural "%(num)d articles"
+msgstr[0] ""
+msgstr[1] ""
+
+#: app/templates/org/workspace.html:118
+msgid "Delete this source?"
+msgstr ""
+
+#: app/templates/org/workspace.html:125
+msgid "No shared sources."
+msgstr ""
+
+#: app/templates/org/workspace.html:135
+msgid "Manage members"
+msgstr ""
+
+#: app/templates/org/workspace.html:153
+msgid "Add an RSS source"
+msgstr ""
+
+#: app/templates/org/workspace.html:160
+msgid "RSS feed URL"
+msgstr ""
+
+#: app/templates/org/workspace.html:164
+msgid "Name (optional)"
+msgstr ""
+
+#: app/templates/org/workspace.html:165
+msgid "Source name"
+msgstr ""
+
+#: app/templates/org/workspace.html:169 app/templates/user/2fa_setup.html:129
+#: app/templates/user/2fa_setup.html:153 app/templates/user/scrapers.html:63
+#: app/templates/user/ticket_new.html:24
+msgid "Cancel"
+msgstr ""
+
+#: app/templates/payment/payment_failed.html:2
+#: app/templates/payment/payment_failed.html:7
+msgid "Payment issue"
+msgstr ""
+
+#: app/templates/payment/payment_failed.html:9
+msgid ""
+"We couldn't process your last payment. Your account access has been "
+"suspended until your payment method is updated."
+msgstr ""
+
+#: app/templates/payment/payment_failed.html:16
+#: app/templates/payment/payment_failed.html:54
+msgid "Update my payment method"
+msgstr ""
+
+#: app/templates/payment/payment_failed.html:24
+msgid "If you believe this is an error, please contact us via"
+msgstr ""
+
+#: app/templates/payment/payment_failed.html:25
+msgid "support"
+msgstr ""
+
+#: app/templates/payment/payment_failed.html:36
+#: app/templates/payment/resubscribe.html:103
+#: app/templates/user/settings.html:154 app/templates/user/settings.html:191
+msgid "Redirecting…"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:2
+#: app/templates/payment/resubscribe.html:9
+msgid "Your subscription has expired"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:11
+msgid ""
+"To continue accessing unlimited search and your personal library, choose "
+"the plan that suits you."
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:22
+#: app/templates/user/dashboard.html:17
+msgid "Standard"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:23
+msgid "AI search without limits"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:25
+#: app/templates/payment/resubscribe.html:53
+msgid "month"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:28
+msgid "10 searches/min · 50/hour · 200/day"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:29
+msgid "Personal library — 100 docs · 25 MB/file"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:30
+msgid "Personalized watch digest"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:31
+msgid "PDF download of practical sheets"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:37
+msgid "Choose Standard"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:51
+msgid "Priority access · No request quota"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:56
+msgid "Everything in Standard plan"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:57
+msgid "No request quota · Priority processing"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:58
+msgid "Personal library — 1,000 docs · 100 MB/file"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:59
+msgid "Custom RSS/web sources (beta)"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:60
+msgid "Share sources and documents between subscribers"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:65
+msgid "Choose Pro"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:73
+msgid "Cancel anytime"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:75
+msgid "Manage via Stripe portal"
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:112
+#: app/templates/user/dashboard.html:399 app/templates/user/rag_search.html:250
+#: app/templates/user/settings.html:165
+msgid "An error occurred."
+msgstr ""
+
+#: app/templates/payment/resubscribe.html:116
+#: app/templates/user/settings.html:169
+msgid "Invalid Stripe session."
+msgstr ""
+
+#: app/templates/search/shared_result.html:8
+msgid "Shared result"
+msgstr ""
+
+#: app/templates/search/shared_result.html:15
+#: app/templates/user/dashboard.html:159 app/templates/user/rag_search.html:212
+msgid "Summary"
+msgstr ""
+
+#: app/templates/search/shared_result.html:19
+#: app/templates/user/dashboard.html:391 app/templates/user/rag_search.html:244
+msgid "confidence"
+msgstr ""
+
+#: app/templates/search/shared_result.html:27
+#: app/templates/user/library.html:33
+msgid "Sources"
+msgstr ""
+
+#: app/templates/search/shared_result.html:49
+msgid "Ask your own questions on Myeline."
+msgstr ""
+
+#: app/templates/search/shared_result.html:51
+msgid "Try Myeline"
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:21
+msgid "Two-factor authentication is active."
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:24
+msgid "Method: authenticator app (TOTP)."
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:26
+msgid "Method: email OTP."
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:33 app/templates/user/2fa_setup.html:44
+msgid "Disable 2FA"
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:34
+msgid ""
+"Warning: you will be required to set up 2FA again before accessing your "
+"account."
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:38
+msgid "Current password"
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:43
+msgid "Are you sure you want to disable two-factor authentication?"
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:52
+msgid "Choose how you want to receive your verification codes."
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:61 app/templates/user/settings.html:86
+msgid "Authenticator app"
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:62
+msgid "Google Authenticator, Authy, 1Password, Bitwarden…"
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:66
+msgid "Set up"
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:80
+msgid "Receive a code at your registered email address."
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:84
+msgid "Send code"
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:96
+msgid "Scan the QR code"
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:97
+msgid "Open your authenticator app and scan this QR code."
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:102
+msgid "QR code unavailable. Use the key below."
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:105
+msgid "Or enter this key manually:"
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:116
+msgid "Enter the code shown in the app"
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:128 app/templates/user/2fa_setup.html:152
+msgid "Activate 2FA"
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:139
+msgid "Enter the email code"
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:140
+msgid "A 6-digit code was sent to your email address."
+msgstr ""
+
+#: app/templates/user/2fa_setup.html:168
+msgid "Key copied!"
+msgstr ""
+
+#: app/templates/user/categories.html:2 app/templates/user/categories.html:5
+msgid "Categories"
+msgstr ""
+
+#: app/templates/user/categories.html:31
+msgid "No content available yet."
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:10
+#: app/templates/user/cloud_connections.html:13
+#: app/templates/user/cloud_folder_picker.html:9
+#: app/templates/user/gdrive_connect.html:9
+#: app/templates/user/kdrive_connect.html:8 app/templates/user/library.html:9
+#: app/templates/user/notion_connect.html:8
+#: app/templates/user/s3_connect.html:8
+#: app/templates/user/webdav_connect.html:8
+#: app/templates/user/zotero_connect.html:8
+msgid "Back"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:16
+#: app/templates/user/dashboard.html:110 app/templates/user/dashboard.html:192
+#: app/templates/user/library.html:2 app/templates/user/library.html:10
+#: app/templates/user/rag_search.html:117
+msgid "My documents"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:31
+msgid "Connected services"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:42
+msgid "indexed documents"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:44
+msgid "Last sync"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:49
+msgid "Full library"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:51
+msgid "Full drive"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:59
+msgid "Every 15 min"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:59
+#: app/templates/user/cloud_connections.html:61
+msgid "Every hour"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:59
+#: app/templates/user/cloud_connections.html:61
+#: app/templates/user/cloud_connections.html:72
+msgid "Every 4 hours"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:59
+#: app/templates/user/cloud_connections.html:61
+msgid "Every 12 hours"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:59
+#: app/templates/user/cloud_connections.html:61
+#: app/templates/user/cloud_connections.html:75
+msgid "Every 24 hours"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:66
+msgid "Sync frequency"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:75
+msgid "Standard plan: 1 cloud sync per 24 h. Upgrade to Pro for 4-hour cadence."
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:80
+msgid "Folder"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:87
+msgid "Sync"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:94
+#: app/templates/user/cloud_connections.html:102
+#, python-format
+msgid "Disconnect %(provider)s and delete all its documents from your index?"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:96
+#: app/templates/user/cloud_connections.html:104
+msgid "Disconnect"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:121
+msgid "Your Standard plan allows 1 cloud connection."
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:122
+msgid "Upgrade to Pro"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:123
+msgid "to connect unlimited services."
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:185
+msgid "Launched ✓"
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:186
+#: app/templates/user/cloud_folder_picker.html:53
+msgid "Network error."
+msgstr ""
+
+#: app/templates/user/cloud_connections.html:226
+#: app/templates/user/library.html:290 app/templates/user/scrapers.html:118
+msgid "Error"
+msgstr ""
+
+#: app/templates/user/cloud_folder_picker.html:2
+#: app/templates/user/cloud_folder_picker.html:10
+msgid "Choose a folder"
+msgstr ""
+
+#: app/templates/user/cloud_folder_picker.html:14
+msgid ""
+"Select a folder to sync, or leave \"Full Drive\" to index all your "
+"documents."
+msgstr ""
+
+#: app/templates/user/cloud_folder_picker.html:23
+msgid "Full Drive"
+msgstr ""
+
+#: app/templates/user/cloud_folder_picker.html:24
+msgid "All your accessible documents"
+msgstr ""
+
+#: app/templates/user/cloud_folder_picker.html:38
+msgid "No folders found at the root of your Drive."
+msgstr ""
+
+#: app/templates/user/cloud_folder_picker.html:50
+msgid "Saving…"
+msgstr ""
+
+#: app/templates/user/cloud_folder_picker.html:51
+msgid "Folder saved. Redirecting…"
+msgstr ""
+
+#: app/templates/user/cloud_folder_picker.html:52
+msgid "Error:"
+msgstr ""
+
+#: app/templates/user/dashboard.html:9
+msgid "Hello,"
+msgstr ""
+
+#: app/templates/user/dashboard.html:19 app/templates/user/settings.html:59
+msgid "Free"
+msgstr ""
+
+#: app/templates/user/dashboard.html:43
+msgid "Open workspace"
+msgstr ""
+
+#: app/templates/user/dashboard.html:50
+msgid "team doc(s)"
+msgstr ""
+
+#: app/templates/user/dashboard.html:54
+msgid "team source(s)"
+msgstr ""
+
+#: app/templates/user/dashboard.html:88 app/templates/user/dashboard.html:390
+msgid "Ask"
+msgstr ""
+
+#: app/templates/user/dashboard.html:97
+msgid "Team"
+msgstr ""
+
+#: app/templates/user/dashboard.html:102
+msgid "Shared sources"
+msgstr ""
+
+#: app/templates/user/dashboard.html:103
+msgid "Shared documents"
+msgstr ""
+
+#: app/templates/user/dashboard.html:107
+msgid "Personal"
+msgstr ""
+
+#: app/templates/user/dashboard.html:114
+msgid "My documents + sources"
+msgstr ""
+
+#: app/templates/user/dashboard.html:119
+#: app/templates/user/index_manager.html:18 app/templates/user/scrapers.html:32
+msgid "All"
+msgstr ""
+
+#: app/templates/user/dashboard.html:166 app/templates/user/rag_search.html:223
+msgid "Source excerpts"
+msgstr ""
+
+#: app/templates/user/dashboard.html:193
+msgid "Browse and tag my synced documents"
+msgstr ""
+
+#: app/templates/user/dashboard.html:216
+msgid "active source(s)"
+msgstr ""
+
+#: app/templates/user/dashboard.html:224 app/templates/user/dashboard.html:250
+msgid "Email digest"
+msgstr ""
+
+#: app/templates/user/dashboard.html:227 app/templates/user/dashboard.html:239
+#: app/templates/user/dashboard.html:253 app/templates/user/dashboard.html:265
+#: app/templates/user/dashboard.html:986 app/templates/user/scrapers.html:146
+msgid "Weekly"
+msgstr ""
+
+#: app/templates/user/dashboard.html:227 app/templates/user/dashboard.html:238
+#: app/templates/user/dashboard.html:253 app/templates/user/dashboard.html:264
+#: app/templates/user/dashboard.html:985 app/templates/user/scrapers.html:145
+msgid "Daily"
+msgstr ""
+
+#: app/templates/user/dashboard.html:229 app/templates/user/dashboard.html:237
+#: app/templates/user/dashboard.html:255 app/templates/user/dashboard.html:263
+#: app/templates/user/dashboard.html:984
+msgid "Disabled"
+msgstr ""
+
+#: app/templates/user/dashboard.html:236 app/templates/user/dashboard.html:262
+msgid "Email digest frequency"
+msgstr ""
+
+#: app/templates/user/dashboard.html:282
+msgid "Indexed cloud documents"
+msgstr ""
+
+#: app/templates/user/dashboard.html:297
+msgid ""
+"Quota reached. New cloud documents will not be indexed until you upgrade "
+"or remove some."
+msgstr ""
+
+#: app/templates/user/dashboard.html:301
+msgid "Approaching the limit. New documents may soon be skipped."
+msgstr ""
+
+#: app/templates/user/dashboard.html:389 app/templates/user/rag_search.html:242
+msgid "Searching…"
+msgstr ""
+
+#: app/templates/user/dashboard.html:392 app/templates/user/rag_search.html:245
+msgid "Shared"
+msgstr ""
+
+#: app/templates/user/dashboard.html:393 app/templates/user/rag_search.html:246
+msgid "My document"
+msgstr ""
+
+#: app/templates/user/dashboard.html:394
+msgid "Team document"
+msgstr ""
+
+#: app/templates/user/dashboard.html:395 app/templates/user/rag_search.html:247
+msgid "View newsletter →"
+msgstr ""
+
+#: app/templates/user/dashboard.html:396 app/templates/user/rag_search.html:248
+msgid "Read article →"
+msgstr ""
+
+#: app/templates/user/dashboard.html:397
+msgid "View document"
+msgstr ""
+
+#: app/templates/user/dashboard.html:398 app/templates/user/rag_search.html:249
+msgid "Open in cloud →"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:2
+#: app/templates/user/gdrive_connect.html:10
+msgid "Connect Google Drive"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:23
+msgid ""
+"Myeline uses a Google service account to read your files securely, "
+"without access to the rest of your Drive. Follow the 3 steps below."
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:31
+msgid "Copy our service account email"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:40
+#: app/templates/user/gdrive_connect.html:134
+msgid "Copy"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:45
+msgid "The Google Drive service account is not configured on this instance."
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:47
+msgid ""
+"The Drive connector requires a Google Cloud service account, configured "
+"server-side by the platform operator (via the "
+"GOOGLE_SERVICE_ACCOUNT_CREDENTIALS variable in .env). It cannot be "
+"configured from this interface."
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:50
+msgid "If you are the operator:"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:51
+msgid "follow the procedure at"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:54
+msgid "Installation › Cloud connectors › Google Drive"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:56
+msgid ""
+"(create the GCP service account, download the JSON key, paste into .env, "
+"restart the stack)."
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:57
+msgid "Otherwise:"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:58
+msgid "contact the operator who installed Myeline for you."
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:70
+msgid "Share your Google Drive folder with this address"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:74
+#: app/templates/user/ticket_detail.html:19 app/templates/user/tickets.html:25
+msgid "Open"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:76
+msgid "and navigate to the folder you want to index."
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:78
+msgid "Right-click the folder → Share."
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:80
+msgid "In the \"Add people\" field, paste the address copied in step 1."
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:82
+msgid "Choose the Viewer role."
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:83
+msgid "Click Send."
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:86
+msgid "Note:"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:87
+msgid ""
+"Myeline will only index this folder and its subfolders. The rest of your "
+"Drive remains inaccessible."
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:97
+msgid "Paste your folder URL"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:100
+msgid ""
+"In Google Drive, open the shared folder and copy its URL from your "
+"browser address bar (it looks like:"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:101
+msgid ")."
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:107
+msgid "Folder URL or ID"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:123
+msgid "Validate and connect"
+msgstr ""
+
+#: app/templates/user/gdrive_connect.html:135
+msgid "Copied!"
+msgstr ""
+
+#: app/templates/user/index_manager.html:2
+msgid "My index"
+msgstr ""
+
+#: app/templates/user/index_manager.html:7
+msgid "My personal index"
+msgstr ""
+
+#: app/templates/user/index_manager.html:8
+msgid "Documents and articles indexed in your private space."
+msgstr ""
+
+#: app/templates/user/index_manager.html:15 app/templates/user/scrapers.html:29
+msgid "Filter by tag:"
+msgstr ""
+
+#: app/templates/user/index_manager.html:32
+msgid "Document"
+msgstr ""
+
+#: app/templates/user/index_manager.html:33
+msgid "Cloud document"
+msgstr ""
+
+#: app/templates/user/index_manager.html:34
+msgid "RSS article"
+msgstr ""
+
+#: app/templates/user/index_manager.html:44
+msgid "chunk(s)"
+msgstr ""
+
+#: app/templates/user/index_manager.html:55
+#: app/templates/user/index_manager.html:93
+#: app/templates/user/index_manager.html:98 app/templates/user/library.html:178
+msgid "Remove from index"
+msgstr ""
+
+#: app/templates/user/index_manager.html:63
+msgid "No indexed content with this tag."
+msgstr ""
+
+#: app/templates/user/index_manager.html:63
+#: app/templates/user/index_manager.html:88
+msgid "Your personal index is empty."
+msgstr ""
+
+#: app/templates/user/index_manager.html:73
+msgid "Remove this entry from your index? The source document is not deleted."
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:2
+#: app/templates/user/kdrive_connect.html:9
+msgid "Connect kDrive"
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:23
+msgid "Paid plan required"
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:24
+msgid ""
+"WebDAV access is not available on free kSuite / my kSuite plans. You need"
+" a paid kDrive subscription to use this feature."
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:34
+msgid "Find your kDrive ID"
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:37
+msgid "Open kDrive in a new tab and look at the address bar."
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:39
+msgid "Open kDrive"
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:45
+msgid "The number highlighted in blue is your kDrive ID."
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:52
+msgid "Create an application password"
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:55
+msgid "In"
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:57
+msgid "click your profile picture (top right)"
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:58
+msgid "Security"
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:59
+msgid "Application passwords"
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:60
+msgid "create a new password."
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:64
+msgid ""
+"Use the e-mail address of your Infomaniak account, not a custom domain "
+"(e.g. your@infomaniak.com or the address you use to log in to Manager)."
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:74
+msgid "Infomaniak account e-mail"
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:82
+msgid "kDrive ID"
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:90
+msgid "Application password"
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:94
+msgid "Spaces in the password are stripped automatically."
+msgstr ""
+
+#: app/templates/user/kdrive_connect.html:97
+#: app/templates/user/notion_connect.html:62
+#: app/templates/user/s3_connect.html:74
+#: app/templates/user/webdav_connect.html:59
+#: app/templates/user/zotero_connect.html:46
+msgid "Connect"
+msgstr ""
+
+#: app/templates/user/library.html:13
+msgid "Manage cloud services"
+msgstr ""
+
+#: app/templates/user/library.html:50
+msgid "All documents"
+msgstr ""
+
+#: app/templates/user/library.html:52
+msgid "Scraped sources"
+msgstr ""
+
+#: app/templates/user/library.html:58
+msgid "Search by title…"
+msgstr ""
+
+#: app/templates/user/library.html:64
+msgid "All services"
+msgstr ""
+
+#: app/templates/user/library.html:76
+msgid "All tags"
+msgstr ""
+
+#: app/templates/user/library.html:84
+msgid "Filter"
+msgstr ""
+
+#: app/templates/user/library.html:126
+msgid "Not indexed"
+msgstr ""
+
+#: app/templates/user/library.html:135 app/templates/user/library.html:139
+#: app/templates/user/library.html:335
+msgid "Indexed"
+msgstr ""
+
+#: app/templates/user/library.html:153 app/templates/user/scrapers.html:396
+msgid "Remove"
+msgstr ""
+
+#: app/templates/user/library.html:169
+msgid "Chat with this document"
+msgstr ""
+
+#: app/templates/user/library.html:171
+msgid "Chat"
+msgstr ""
+
+#: app/templates/user/library.html:180
+msgid "Unindex"
+msgstr ""
+
+#: app/templates/user/library.html:190
+msgid "No document matches your filters."
+msgstr ""
+
+#: app/templates/user/library.html:192
+msgid "Upload documents from the dashboard to start indexing them."
+msgstr ""
+
+#: app/templates/user/library.html:194
+msgid "No documents synced yet."
+msgstr ""
+
+#: app/templates/user/library.html:195
+msgid "Launch a sync"
+msgstr ""
+
+#: app/templates/user/library.html:197
+msgid "Connect a cloud service to see your documents here."
+msgstr ""
+
+#: app/templates/user/library.html:207
+msgid "Per page"
+msgstr ""
+
+#: app/templates/user/library.html:273
+msgid "Remove this document from the index? It will be re-indexed on next sync."
+msgstr ""
+
+#: app/templates/user/library.html:334
+msgid "Published"
+msgstr ""
+
+#: app/templates/user/library.html:336
+msgid "Open source"
+msgstr ""
+
+#: app/templates/user/library.html:347
+msgid "No indexed content yet."
+msgstr ""
+
+#: app/templates/user/library.html:354
+msgid "Error loading preview."
+msgstr ""
+
+#: app/templates/user/notion_connect.html:2
+#: app/templates/user/notion_connect.html:10
+msgid "Connect Notion"
+msgstr ""
+
+#: app/templates/user/notion_connect.html:26
+msgid "Create a Notion Integration"
+msgstr ""
+
+#: app/templates/user/notion_connect.html:29
+msgid "Go to"
+msgstr ""
+
+#: app/templates/user/notion_connect.html:33
+msgid "and create a new internal integration."
+msgstr ""
+
+#: app/templates/user/notion_connect.html:34
+msgid "Copy the Integration Token (starts with"
+msgstr ""
+
+#: app/templates/user/notion_connect.html:34
+msgid "or"
+msgstr ""
+
+#: app/templates/user/notion_connect.html:41
+msgid "Share pages with the integration"
+msgstr ""
+
+#: app/templates/user/notion_connect.html:44
+msgid "In each Notion page you want to index, click"
+msgstr ""
+
+#: app/templates/user/notion_connect.html:45
+msgid "Connections"
+msgstr ""
+
+#: app/templates/user/notion_connect.html:45
+msgid "select your integration."
+msgstr ""
+
+#: app/templates/user/notion_connect.html:46
+msgid "Only pages explicitly shared with the integration will be synced."
+msgstr ""
+
+#: app/templates/user/notion_connect.html:56
+msgid "Integration Token"
+msgstr ""
+
+#: app/templates/user/notion_connect.html:59
+msgid "The token is encrypted before being stored."
+msgstr ""
+
+#: app/templates/user/rag_search.html:2 app/templates/user/rag_search.html:48
+msgid "Smart search"
+msgstr ""
+
+#: app/templates/user/rag_search.html:46
+msgid "Chat with document"
+msgstr ""
+
+#: app/templates/user/rag_search.html:50
+#, python-format
+msgid "100%% local processing"
+msgstr ""
+
+#: app/templates/user/rag_search.html:55
+msgid "Browse past conversations"
+msgstr ""
+
+#: app/templates/user/rag_search.html:56 app/templates/user/rag_search.html:68
+msgid "My conversations"
+msgstr ""
+
+#: app/templates/user/rag_search.html:59
+msgid "New conversation"
+msgstr ""
+
+#: app/templates/user/rag_search.html:73 app/templates/user/scrapers.html:169
+#: app/templates/user/scrapers.html:232
+msgid "Loading…"
+msgstr ""
+
+#: app/templates/user/rag_search.html:79
+msgid "Single-document conversation. Retrieval is scoped to:"
+msgstr ""
+
+#: app/templates/user/rag_search.html:84
+msgid ""
+"Ask a question in natural language — the AI answers using your indexed "
+"sources and documents."
+msgstr ""
+
+#: app/templates/user/rag_search.html:85
+msgid "Your queries never leave our servers."
+msgstr ""
+
+#: app/templates/user/rag_search.html:88
+#, python-format
+msgid "%(num)d section indexed"
+msgid_plural "%(num)d sections indexed"
+msgstr[0] ""
+msgstr[1] ""
+
+#: app/templates/user/rag_search.html:106
+msgid "Ask a question in natural language…"
+msgstr ""
+
+#: app/templates/user/rag_search.html:115
+msgid "Search scope"
+msgstr ""
+
+#: app/templates/user/rag_search.html:117
+msgid "Shared watch"
+msgstr ""
+
+#: app/templates/user/rag_search.html:117
+msgid "Both"
+msgstr ""
+
+#: app/templates/user/rag_search.html:127
+msgid "Manage my library"
+msgstr ""
+
+#: app/templates/user/rag_search.html:135
+msgid "Filter by theme"
+msgstr ""
+
+#: app/templates/user/rag_search.html:135
+#: app/templates/user/rag_search.html:146 app/templates/user/s3_connect.html:59
+#: app/templates/user/s3_connect.html:67 app/templates/user/scrapers.html:56
+msgid "optional"
+msgstr ""
+
+#: app/templates/user/rag_search.html:137
+msgid "All themes"
+msgstr ""
+
+#: app/templates/user/rag_search.html:146
+msgid "Filter by date"
+msgstr ""
+
+#: app/templates/user/rag_search.html:148
+msgid "Any date"
+msgstr ""
+
+#: app/templates/user/rag_search.html:149
+msgid "Last 7 days"
+msgstr ""
+
+#: app/templates/user/rag_search.html:150
+msgid "Last 30 days"
+msgstr ""
+
+#: app/templates/user/rag_search.html:151
+msgid "Last 3 months"
+msgstr ""
+
+#: app/templates/user/rag_search.html:152
+msgid "Last year"
+msgstr ""
+
+#: app/templates/user/rag_search.html:153
+msgid "Custom range…"
+msgstr ""
+
+#: app/templates/user/rag_search.html:168
+msgid "Strict mode"
+msgstr ""
+
+#: app/templates/user/rag_search.html:169
+msgid "only answer from your sources; no general-knowledge backfill"
+msgstr ""
+
+#: app/templates/user/rag_search.html:183
+msgid "Sample questions:"
+msgstr ""
+
+#: app/templates/user/rag_search.html:186
+msgid "Summary of recent articles on topic X?"
+msgstr ""
+
+#: app/templates/user/rag_search.html:187
+msgid "What are the key points from my documents on Y?"
+msgstr ""
+
+#: app/templates/user/rag_search.html:188
+msgid "What's new in my sources this week?"
+msgstr ""
+
+#: app/templates/user/rag_search.html:189
+msgid "Synthesis on theme Z in my documents?"
+msgstr ""
+
+#: app/templates/user/rag_search.html:251
+#: app/templates/user/ticket_detail.html:40
+msgid "You"
+msgstr ""
+
+#: app/templates/user/rag_search.html:252
+msgid "Assistant"
+msgstr ""
+
+#: app/templates/user/rag_search.html:256
+#: app/templates/user/rag_search.html:257
+msgid "Understanding your question…"
+msgstr ""
+
+#: app/templates/user/rag_search.html:258
+msgid "Searching the knowledge base…"
+msgstr ""
+
+#: app/templates/user/rag_search.html:259
+msgid "Selecting the most relevant sources…"
+msgstr ""
+
+#: app/templates/user/rag_search.html:260
+msgid "Writing the answer…"
+msgstr ""
+
+#: app/templates/user/rag_search.html:303
+msgid "No conversation yet — ask your first question to start one."
+msgstr ""
+
+#: app/templates/user/rag_search.html:315
+msgid "Delete this conversation"
+msgstr ""
+
+#: app/templates/user/rag_search.html:354
+msgid "Delete this conversation? This cannot be undone."
+msgstr ""
+
+#: app/templates/user/s3_connect.html:2 app/templates/user/s3_connect.html:9
+msgid "Connect S3 storage"
+msgstr ""
+
+#: app/templates/user/s3_connect.html:22
+msgid ""
+"Compatible with Amazon S3, Scaleway, OVH, Infomaniak kS3, Cloudflare R2, "
+"MinIO, and any S3-compatible storage."
+msgstr ""
+
+#: app/templates/user/s3_connect.html:23
+msgid "The credentials are stored encrypted and only used to read your documents."
+msgstr ""
+
+#: app/templates/user/s3_connect.html:30
+msgid "Access Key ID"
+msgstr ""
+
+#: app/templates/user/s3_connect.html:37
+msgid "Secret Access Key"
+msgstr ""
+
+#: app/templates/user/s3_connect.html:44
+msgid "Endpoint URL"
+msgstr ""
+
+#: app/templates/user/s3_connect.html:48
+msgid ""
+"Leave empty for Amazon S3, or enter the endpoint for your S3-compatible "
+"provider."
+msgstr ""
+
+#: app/templates/user/s3_connect.html:52
+msgid "Bucket name"
+msgstr ""
+
+#: app/templates/user/s3_connect.html:59
+msgid "Prefix / folder"
+msgstr ""
+
+#: app/templates/user/s3_connect.html:63
+msgid ""
+"Only files under this prefix will be indexed. Leave empty to index the "
+"whole bucket."
+msgstr ""
+
+#: app/templates/user/s3_connect.html:67
+msgid "Display name"
+msgstr ""
+
+#: app/templates/user/s3_connect.html:71
+msgid "Friendly name shown in your cloud services list."
+msgstr ""
+
+#: app/templates/user/scrapers.html:11 app/templates/user/scrapers.html:209
+msgid "Beta"
+msgstr ""
+
+#: app/templates/user/scrapers.html:14
+msgid "Add your own sources — articles are indexed exclusively for you."
+msgstr ""
+
+#: app/templates/user/scrapers.html:16 app/templates/user/scrapers.html:23
+msgid "sources"
+msgstr ""
+
+#: app/templates/user/scrapers.html:21
+msgid "Add a source"
+msgstr ""
+
+#: app/templates/user/scrapers.html:23
+msgid "Quota reached"
+msgstr ""
+
+#: app/templates/user/scrapers.html:45
+msgid "New source"
+msgstr ""
+
+#: app/templates/user/scrapers.html:47
+msgid "Name"
+msgstr ""
+
+#: app/templates/user/scrapers.html:48
+msgid "E.g.: Le Monde, BBC News…"
+msgstr ""
+
+#: app/templates/user/scrapers.html:51
+msgid "URL"
+msgstr ""
+
+#: app/templates/user/scrapers.html:53
+msgid "Any URL: RSS/Atom feed or regular article page. Detection is automatic."
+msgstr ""
+
+#: app/templates/user/scrapers.html:56
+msgid "Scrape since"
+msgstr ""
+
+#: app/templates/user/scrapers.html:58
+msgid "Only retrieve articles published after this date."
+msgstr ""
+
+#: app/templates/user/scrapers.html:71
+msgid "Show:"
+msgstr ""
+
+#: app/templates/user/scrapers.html:78
+msgid "Pagination"
+msgstr ""
+
+#: app/templates/user/scrapers.html:123
+msgid "Pending"
+msgstr ""
+
+#: app/templates/user/scrapers.html:131
+msgid "Since:"
+msgstr ""
+
+#: app/templates/user/scrapers.html:136 app/templates/user/scrapers.html:241
+#: app/templates/user/settings.html:46
+msgid "Save"
+msgstr ""
+
+#: app/templates/user/scrapers.html:143
+msgid "Refresh frequency"
+msgstr ""
+
+#: app/templates/user/scrapers.html:144
+msgid "Frequency"
+msgstr ""
+
+#: app/templates/user/scrapers.html:149
+msgid "View articles"
+msgstr ""
+
+#: app/templates/user/scrapers.html:149
+msgid "Articles"
+msgstr ""
+
+#: app/templates/user/scrapers.html:152
+msgid "Add to team workspace"
+msgstr ""
+
+#: app/templates/user/scrapers.html:154 app/templates/user/scrapers.html:461
+msgid "In team"
+msgstr ""
+
+#: app/templates/user/scrapers.html:157 app/templates/user/scrapers.html:166
+msgid "Refresh"
+msgstr ""
+
+#: app/templates/user/scrapers.html:158 app/templates/user/scrapers.html:386
+msgid "Delete"
+msgstr ""
+
+#: app/templates/user/scrapers.html:164
+msgid "Indexed articles"
+msgstr ""
+
+#: app/templates/user/scrapers.html:182
+msgid "No sources yet."
+msgstr ""
+
+#: app/templates/user/scrapers.html:183
+msgid "Add a URL (webpage or RSS feed) to enrich your personal search space."
+msgstr ""
+
+#: app/templates/user/scrapers.html:205
+msgid "RSS/Atom feeds"
+msgstr ""
+
+#: app/templates/user/scrapers.html:205
+msgid "Paste the URL of any RSS or Atom feed for reliable, structured indexing."
+msgstr ""
+
+#: app/templates/user/scrapers.html:208
+msgid "Web pages"
+msgstr ""
+
+#: app/templates/user/scrapers.html:210
+msgid ""
+"You can add any web page URL. We'll try to extract and index its content "
+"automatically, but results are not guaranteed — complex pages or those "
+"blocking scrapers may not work correctly."
+msgstr ""
+
+#: app/templates/user/scrapers.html:213
+msgid ""
+"Indexed content appears in AI search under <em>My documents</em> or "
+"<em>Both</em>. Refresh frequency is configurable per source."
+msgstr ""
+
+#: app/templates/user/scrapers.html:226
+msgid "Name and URL required."
+msgstr ""
+
+#: app/templates/user/scrapers.html:227
+msgid "Adding…"
+msgstr ""
+
+#: app/templates/user/scrapers.html:229
+msgid "Reloading…"
+msgstr ""
+
+#: app/templates/user/scrapers.html:230
+msgid "Delete this source and all its indexed articles?"
+msgstr ""
+
+#: app/templates/user/scrapers.html:231 app/templates/user/scrapers.html:235
+msgid "Error deleting."
+msgstr ""
+
+#: app/templates/user/scrapers.html:233
+msgid "No indexed articles."
+msgstr ""
+
+#: app/templates/user/scrapers.html:234
+msgid "Loading error."
+msgstr ""
+
+#: app/templates/user/scrapers.html:236
+msgid "Enter an email."
+msgstr ""
+
+#: app/templates/user/scrapers.html:237
+msgid "Shared."
+msgstr ""
+
+#: app/templates/user/scrapers.html:238
+msgid "Sharing removed."
+msgstr ""
+
+#: app/templates/user/scrapers.html:239
+msgid "Error."
+msgstr ""
+
+#: app/templates/user/scrapers.html:240
+msgid "Error updating."
+msgstr ""
+
+#: app/templates/user/scrapers.html:446
+msgid ""
+"Add this source to the team workspace? It will be re-indexed and shared "
+"with all team members."
+msgstr ""
+
+#: app/templates/user/settings.html:2
+msgid "Account settings"
+msgstr ""
+
+#: app/templates/user/settings.html:14
+msgid "First name"
+msgstr ""
+
+#: app/templates/user/settings.html:18
+msgid "Last name"
+msgstr ""
+
+#: app/templates/user/settings.html:31
+msgid "leave blank to keep unchanged"
+msgstr ""
+
+#: app/templates/user/settings.html:39 app/templates/user/settings.html:41
+msgid ""
+"At least 8 characters, one uppercase, one lowercase, one number and one "
+"special character."
+msgstr ""
+
+#: app/templates/user/settings.html:51
+msgid "Subscription"
+msgstr ""
+
+#: app/templates/user/settings.html:54
+msgid "Your subscription is managed by your organisation administrator."
+msgstr ""
+
+#: app/templates/user/settings.html:59
+msgid "Paid"
+msgstr ""
+
+#: app/templates/user/settings.html:65 app/templates/user/settings.html:208
+msgid "Manage my subscription"
+msgstr ""
+
+#: app/templates/user/settings.html:87
+msgid "Email OTP"
+msgstr ""
+
+#: app/templates/user/settings.html:91
+msgid "Not configured. Enable 2FA to secure your account."
+msgstr ""
+
+#: app/templates/user/settings.html:96
+msgid "Manage two-factor authentication"
+msgstr ""
+
+#: app/templates/user/settings.html:102
+msgid "My personal data (GDPR)"
+msgstr ""
+
+#: app/templates/user/settings.html:104
+msgid ""
+"Under GDPR articles 15 and 20, you have the right to access and retrieve "
+"your personal data in a structured format."
+msgstr ""
+
+#: app/templates/user/settings.html:108
+msgid "Download my data (JSON)"
+msgstr ""
+
+#: app/templates/user/settings.html:117
+msgid ""
+"Are you sure you want to permanently delete your account? This action is "
+"irreversible."
+msgstr ""
+
+#: app/templates/user/settings.html:124
+msgid "Confirm with your current password:"
+msgstr ""
+
+#: app/templates/user/settings.html:130
+msgid "Delete my account"
+msgstr ""
+
+#: app/templates/user/ticket_detail.html:2
+#: app/templates/user/ticket_detail.html:12
+msgid "Ticket"
+msgstr ""
+
+#: app/templates/user/ticket_detail.html:6 app/templates/user/ticket_new.html:6
+msgid "My tickets"
+msgstr ""
+
+#: app/templates/user/ticket_detail.html:20 app/templates/user/tickets.html:26
+msgid "In progress"
+msgstr ""
+
+#: app/templates/user/ticket_detail.html:21 app/templates/user/tickets.html:27
+msgid "Resolved"
+msgstr ""
+
+#: app/templates/user/ticket_detail.html:22 app/templates/user/tickets.html:28
+msgid "Closed"
+msgstr ""
+
+#: app/templates/user/ticket_detail.html:40
+msgid "Support team"
+msgstr ""
+
+#: app/templates/user/ticket_detail.html:52
+msgid "Your reply"
+msgstr ""
+
+#: app/templates/user/ticket_detail.html:54
+msgid "Add a message…"
+msgstr ""
+
+#: app/templates/user/ticket_detail.html:60
+msgid "This ticket is closed. Open a new one if you need further help."
+msgstr ""
+
+#: app/templates/user/ticket_detail.html:61
+#: app/templates/user/ticket_new.html:2 app/templates/user/tickets.html:7
+msgid "New ticket"
+msgstr ""
+
+#: app/templates/user/ticket_new.html:8
+msgid "New support ticket"
+msgstr ""
+
+#: app/templates/user/ticket_new.html:13
+msgid "Subject"
+msgstr ""
+
+#: app/templates/user/ticket_new.html:15
+msgid "Describe your problem in a few words"
+msgstr ""
+
+#: app/templates/user/ticket_new.html:18
+msgid "Message"
+msgstr ""
+
+#: app/templates/user/ticket_new.html:20
+msgid "Describe your problem in detail…"
+msgstr ""
+
+#: app/templates/user/tickets.html:2 app/templates/user/tickets.html:6
+msgid "My support tickets"
+msgstr ""
+
+#: app/templates/user/tickets.html:17
+msgid "message(s)"
+msgstr ""
+
+#: app/templates/user/tickets.html:35
+msgid "No ticket yet."
+msgstr ""
+
+#: app/templates/user/tickets.html:36
+msgid "Open a support ticket"
+msgstr ""
+
+#: app/templates/user/webdav_connect.html:2
+#: app/templates/user/webdav_connect.html:10
+msgid "Connect WebDAV"
+msgstr ""
+
+#: app/templates/user/webdav_connect.html:24
+msgid "Compatible with Nextcloud, ownCloud, Seafile, and any WebDAV server."
+msgstr ""
+
+#: app/templates/user/webdav_connect.html:25
+msgid "Nextcloud URL example:"
+msgstr ""
+
+#: app/templates/user/webdav_connect.html:36
+msgid "WebDAV URL"
+msgstr ""
+
+#: app/templates/user/webdav_connect.html:44
+msgid "Username"
+msgstr ""
+
+#: app/templates/user/webdav_connect.html:56
+msgid ""
+"For Nextcloud, use an App Password (Settings → Security → App passwords) "
+"rather than your main password."
+msgstr ""
+
+#: app/templates/user/zotero_connect.html:2
+#: app/templates/user/zotero_connect.html:9
+msgid "Connect Zotero"
+msgstr ""
+
+#: app/templates/user/zotero_connect.html:22
+msgid ""
+"Enter your Zotero API key and user ID to sync your library's PDF "
+"attachments."
+msgstr ""
+
+#: app/templates/user/zotero_connect.html:23
+msgid "Generate an API key"
+msgstr ""
+
+#: app/templates/user/zotero_connect.html:24
+msgid "with read access on your library."
+msgstr ""
+
+#: app/templates/user/zotero_connect.html:25
+msgid "Your user ID is visible in your Zotero account settings."
+msgstr ""
+
+#: app/templates/user/zotero_connect.html:32
+msgid "Zotero User ID"
+msgstr ""
+
+#: app/templates/user/zotero_connect.html:36
+msgid "Numeric ID found at zotero.org/settings/keys"
+msgstr ""
+
+#: app/templates/user/zotero_connect.html:40
+msgid "Zotero API Key"
+msgstr ""
+

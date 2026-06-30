@@ -1,0 +1,159 @@
+{% extends "base/base.html" %}
+{% block title %}{{ _("Register") }} — Myeline{% endblock %}
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center flex-grow-1 py-5" style="min-height:calc(100vh - 200px);">
+  <div class="liquid-glass p-4 p-md-5" style="max-width:540px;width:100%;">
+
+    <div class="text-center mb-4">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Myeline" style="max-width:80px;height:auto;" class="mb-3">
+      <h2 class="fw-bold mb-0">{{ _("Create your account") }}</h2>
+    </div>
+
+    <div class="mb-4 text-center">
+      <p class="text-muted small mb-0">
+        {{ _("Your account gives you bring-your-own-key AI, all cloud connections and a watch digest.") }}
+      </p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if form.errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          {{ _("Please fix the errors below.") }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endif %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" novalidate id="register-form">
+      {{ form.hidden_tag() }}
+
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          {{ form.firstname.label(class="form-label fw-medium") }}
+          {{ form.firstname(class="form-control" + (" is-invalid" if form.firstname.errors else "")) }}
+          {% for e in form.firstname.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-6">
+          {{ form.lastname.label(class="form-label fw-medium") }}
+          {{ form.lastname(class="form-control" + (" is-invalid" if form.lastname.errors else "")) }}
+          {% for e in form.lastname.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+
+      <div class="mb-3">
+        {{ form.email.label(class="form-label fw-medium") }}
+        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="your@email.com") }}
+        {% for e in form.email.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.password.label(class="form-label fw-medium") }}
+        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder=_("At least 8 characters")) }}
+        {% for e in form.password.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+        <div class="form-text">{{ _("Uppercase, lowercase, number and special character.") }}</div>
+      </div>
+
+      <div class="mb-3">
+        {{ form.confirm_password.label(class="form-label fw-medium") }}
+        {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else "")) }}
+        {% for e in form.confirm_password.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="mb-3">
+        {# Ces cases DOIVENT être reliées aux champs WTForms accept_cgv /
+           accept_privacy (DataRequired). Sans `name=`, elles ne sont pas
+           postées → validate_on_submit() échoue silencieusement et la page
+           « se recharge » sans message. On rend donc les champs via WTForms
+           (name + id corrects) et on affiche leurs erreurs. #}
+        <div class="form-check">
+          {{ form.accept_cgv(class="form-check-input" + (" is-invalid" if form.accept_cgv.errors else ""), required=True) }}
+          <label class="form-check-label small" for="accept_cgv">
+            {{ _("I accept the") }} <a href="https://github.com/ClaraVnk/myeline/blob/main/LICENSE" target="_blank" rel="noopener" class="text-decoration-none">{{ _("license terms (AGPL-3.0)") }}</a>
+          </label>
+          {% for e in form.accept_cgv.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="form-check mt-1">
+          {{ form.accept_privacy(class="form-check-input" + (" is-invalid" if form.accept_privacy.errors else ""), required=True) }}
+          <label class="form-check-label small" for="accept_privacy">
+            {{ _("I understand my data stays on this self-hosted instance") }} <a href="https://wiki.myeline.io/editions/community/" target="_blank" rel="noopener" class="text-decoration-none">{{ _("(learn more)") }}</a>
+          </label>
+          {% for e in form.accept_privacy.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+
+      {# reCAPTCHA v3 : le serveur (verify_recaptcha) exige ce token sur le
+         POST /register. Rempli au submit par le script en bas de page. Sans
+         lui, l'inscription Free échoue silencieusement (page rechargée). #}
+      <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
+
+      <button type="submit" id="signup-button" class="btn btn-primary btn-lg w-100">
+        {{ _("Create my account") }}
+      </button>
+    </form>
+
+    {% include 'log/_social_buttons.html' %}
+
+    <div class="text-center mt-3 small">
+      <a href="{{ url_for('auth.login') }}" class="text-decoration-none">{{ _("Already have an account?") }} {{ _("Log in here") }}</a>
+    </div>
+    <div class="text-center mt-2 small">
+      <a href="{{ url_for('auth.resend_confirmation') }}" class="text-decoration-none text-muted">
+        {{ _("Resend confirmation email") }}
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% set recaptcha_on = config.RECAPTCHA_SITE_KEY and config.RECAPTCHA_SITE_KEY not in ['dev', 'false', ''] %}
+{% if recaptcha_on %}
+<script src="https://www.google.com/recaptcha/api.js?render={{ config.RECAPTCHA_SITE_KEY }}"></script>
+{% endif %}
+<script nonce="{{ csp_nonce() }}">
+(function () {
+  const form = document.getElementById("register-form");
+  const btn = document.getElementById("signup-button");
+  const recaptchaKey = "{% if recaptcha_on %}{{ config.RECAPTCHA_SITE_KEY }}{% endif %}";
+
+  // Free signup → generate a reCAPTCHA v3 token (action 'register') then submit
+  // the form. Without this the server's verify_recaptcha() rejects the POST and
+  // the page reloads silently. Mirrors the login.html pattern (execute on submit
+  // so the token doesn't expire while the form is being filled).
+  function submitFree() {
+    if (recaptchaKey) {
+      try {
+        grecaptcha.ready(function () {
+          grecaptcha.execute(recaptchaKey, { action: 'register' })
+            .then(function (token) {
+              document.getElementById('g-recaptcha-response').value = token;
+              form.submit();
+            })
+            .catch(function () { form.submit(); });
+        });
+      } catch (e) { form.submit(); }
+    } else {
+      form.submit();
+    }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    // reCAPTCHA token then classic POST (account creation).
+    submitFree();
+  });
+})();
+</script>
+{% endblock %}

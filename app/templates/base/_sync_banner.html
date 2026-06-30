@@ -1,0 +1,145 @@
+{# Persistent banner shown on every page while at least one cloud connection
+   is actively syncing OR a personal scraper is fetching new articles.
+   Polled by JS — initial render is empty; the JS adds <div class="sync-banner-item">
+   children when either endpoint reports activity. The wrapper element is
+   always present so the script has a stable mount point, but it's hidden
+   until populated. #}
+<div id="sync-banner" class="d-none mb-3" role="status" aria-live="polite">
+  <div class="alert alert-info d-flex align-items-start mb-0" style="border-radius:.5rem;">
+    <div class="me-3 pt-1">
+      <i class="bi bi-arrow-repeat sync-spinner" style="font-size:1.25rem; display:inline-block; animation: sync-spin 1.4s linear infinite;"></i>
+    </div>
+    <div class="flex-grow-1" id="sync-banner-body">
+      <!-- populated by sync-banner.js -->
+    </div>
+  </div>
+</div>
+
+<style nonce="{{ csp_nonce() }}">
+  @keyframes sync-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+</style>
+
+<script nonce="{{ csp_nonce() }}">
+(function () {
+  const SYNC_URL   = "{{ url_for('user_cloud.sync_status') }}";
+  const SCRAPE_URL = "{{ url_for('user_scrapers.scrape_status') }}";
+  const POLL_MS = 10_000;
+  const banner = document.getElementById("sync-banner");
+  const body   = document.getElementById("sync-banner-body");
+
+  // Pre-translated strings (only place we touch i18n in this partial).
+  const T = {
+    indexing:  "{{ _('Indexing') }}",
+    of:        "{{ _('of') }}",
+    files:     "{{ _('files') }}",
+    articles:  "{{ _('articles') }}",
+    remaining: "{{ _('remaining') }}",
+    available: "{{ _('You can already query the documents that are indexed.') }}",
+    starting:  "{{ _('Starting…') }}",
+    eta_now:   "{{ _('almost done') }}",
+    scraping:  "{{ _('Fetching') }}",
+  };
+
+  // Bug X9 (audit round 3) — `label` est user-controlled (scraper.name
+  // ou provider_label). Sans escape, un nom `<img src=x onerror=...>`
+  // s'exécute sur TOUTES les pages rendant _sync_banner.html → self-XSS
+  // persistant. Bug X11 — escHtml utilise la version globale de util.js.
+
+  function fmtEta(s) {
+    if (s == null) return null;
+    if (s < 30) return T.eta_now;
+    if (s < 90) return "~1 min " + T.remaining;
+    if (s < 3600) return "~" + Math.round(s / 60) + " min " + T.remaining;
+    const h = Math.floor(s / 3600), m = Math.round((s % 3600) / 60);
+    return "~" + h + "h" + (m > 0 ? m : "") + " " + T.remaining;
+  }
+
+  function buildItem(label, processed, total, eta, unitLabel, verbStarting, verbProgress, withProgressBar) {
+    const pct = total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : null;
+    const safeLabel = escHtml(label);
+    let line;
+    if (total > 0) {
+      line = `<strong>${safeLabel}</strong> — ${verbProgress} ${processed} ${T.of} ${total} ${unitLabel}`;
+      if (eta) line += ` <span class="text-muted">(${eta})</span>`;
+    } else {
+      line = `<strong>${safeLabel}</strong> — ${verbStarting}`;
+    }
+    let html = `<div class="sync-banner-item mb-1">${line}`;
+    if (pct !== null && withProgressBar) {
+      html += `<div class="progress mt-1" style="height:.4rem;">
+                <div class="progress-bar bg-info" style="width:${pct}%"></div>
+              </div>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
+  function render(syncs, scrapes) {
+    syncs = syncs || [];
+    scrapes = scrapes || [];
+    if (syncs.length === 0 && scrapes.length === 0) {
+      banner.classList.add("d-none");
+      body.innerHTML = "";
+      return;
+    }
+    let html = "";
+    for (const s of syncs) {
+      html += buildItem(
+        s.provider_label,
+        s.processed ?? 0, s.total ?? 0, fmtEta(s.eta_s),
+        T.files, T.starting, T.indexing, true,
+      );
+    }
+    for (const s of scrapes) {
+      html += buildItem(
+        s.name,
+        s.processed ?? 0, s.total ?? 0, fmtEta(s.eta_s),
+        T.articles, T.starting, T.scraping, true,
+      );
+    }
+    const anyProgress = (
+      syncs.some(s => (s.processed ?? 0) > 0) ||
+      scrapes.some(s => (s.processed ?? 0) > 0)
+    );
+    if (anyProgress) {
+      html += `<div class="small text-muted mt-1">${T.available}</div>`;
+    }
+    body.innerHTML = html;
+    banner.classList.remove("d-none");
+  }
+
+  let pollTimer = null;
+  function poll() {
+    Promise.all([
+      fetch(SYNC_URL,   { credentials: "same-origin" })
+        .then(r => r.ok ? r.json() : { syncs: [] })
+        .catch(() => ({ syncs: [] })),
+      fetch(SCRAPE_URL, { credentials: "same-origin" })
+        .then(r => r.ok ? r.json() : { scrapes: [] })
+        .catch(() => ({ scrapes: [] })),
+    ]).then(([sd, scd]) => {
+      render(sd.syncs || [], scd.scrapes || []);
+    });
+  }
+
+  function start() {
+    poll();
+    pollTimer = setInterval(poll, POLL_MS);
+  }
+
+  // Pause polling when the tab is hidden, resume on focus, to avoid hammering
+  // the endpoints when the dashboard isn't even being looked at.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    } else if (!pollTimer) {
+      start();
+    }
+  });
+
+  start();
+})();
+</script>

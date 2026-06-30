@@ -1,0 +1,24 @@
+# Fichiers et dossiers à exclure pour les outils de qualité
+data/
+logs/
+.git/
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+.env
+.DS_Store
+Thumbs.db

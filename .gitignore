@@ -1,0 +1,250 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Environment variables
+tokens.env
+secrets.json
+.env.local
+.env.development
+.env.test
+.env.production
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Claude Code
+.claude/
+CLAUDE.md
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+app.db
+
+# Flask specific
+instance/
+.webassets-cache
+flask_session/
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# Security reports
+bandit_report.json
+bandit-report.json
+safety-report.json
+semgrep-report.json
+
+# Project specific
+app/static/students_cards/
+newsletters/
+uploads/
+*.pdf
+*.zip
+*.tar.gz
+
+# Data folders (cache, raw data, processed)
+data/cache/
+data/raw/
+data/processed/
+data/summary/
+data/newsletter/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backups
+*.bak
+*.backup
+backup/
+backups/
+
+# SQL dumps with data (NEVER commit production data)
+migrations/backup_complet_*.sql
+migrations/*_backup*.sql
+*_dump.sql
+
+# SSL certificates (NEVER commit)
+*.pem
+# Exception : the license public key MUST be committed (the private key
+# stays in ~/.myeline/ — out of the repo). Without the pubkey the app
+# refuses to start in production.
+!app/myeline_license_pubkey.pem
+*.key
+*.crt
+*.csr
+ssl/
+nginx/ssl/
+
+# Docker volumes data (bind mounts — données runtime jamais committées)
+data/mysql/
+data/ollama/
+data/chroma_db/
+data/enterprise/
+mariadb_data/
+redis_data/
+sqlite_data/
+
+# Keep these files (exceptions to above rules)
+!app/static/logo.png
+!src/diabetologia_journal.py
+!src/diabetologia_journal/
+!app/templates/login.html
+!scrappers/diabetologia_journal.py
+!data/diabetologia_journal/
+!data/IRDES/
+!data/plos_journal/
+!data/pubmed/
+
+# Alembic migration versions — all tracked
+# (suppression de la règle d'exclusion : les migrations font partie du code)
+!migrations/versions/*.py
+
+# Node modules (if any frontend tooling)
+node_modules/
+package-lock.json
+
+# macOS specific
+.AppleDouble
+.LSOverride
+Icon
+
+# Windows specific
+desktop.ini
+$RECYCLE.BIN/
+
+# Linux specific
+*~
+.directory
+
+# Sensitive data (RGPD compliance)
+# NEVER commit personal data
+*.csv
+*.xlsx
+*.xls
+student_cards/
+user_data/
+personal_data/
+
+# API keys and secrets (double check)
+*secret*
+*SECRET*
+*token*
+*TOKEN*
+*api_key*
+*API_KEY*
+*password*
+*PASSWORD*
+
+# Exception for test files
+!tests/**/test_*.py
+!tests/**/*_test.py
+
+# Re-allow legitimate code files matched by the broad *secret* / *password*
+# / *token* / *api_key* globs above. Without this re-include, a migration
+# like 0021_user_must_reset_password.py (matches *password*) silently
+# never reaches git and CI builds an image with a broken alembic chain
+# (which is exactly the bug we hit on the v1.1.0 prod push).
+# Same trap for templates: `first_password_reset.html` / `forgot_password.html`
+# / `reset_password.html` / `email_reset_password.html` / `new_user_temp_password.html`
+# never made it to v1.1.1 and the tenant 500'd on /first-password-reset.
+!migrations/versions/*.py
+!app/**/*.py
+!app/templates/**/*.html
+!tests/**/*.py
+
+# Legacy bash scripts (deprecated, use Python versions)
+app/cron/legacy_bash/*.sh

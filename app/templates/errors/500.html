@@ -1,0 +1,18 @@
+{% extends "base/base.html" %}
+{% block title %}{{ _('Server error') }} – Myeline{% endblock %}
+{% block content %}
+<div class="container py-5 text-center">
+  <div class="liquid-glass mx-auto" style="max-width:480px">
+    <div class="p-4 p-md-5">
+      <div style="font-size:4rem">⚠️</div>
+      <h1 class="h3 mt-3 mb-2">{{ _('An error occurred') }}</h1>
+      <p class="text-muted mb-4">
+        {{ _('Something went wrong on our side. The team has been notified. Please try again in a few moments.') }}
+      </p>
+      <a href="{{ url_for('home.welcome_page') }}" class="btn btn-primary">
+        {{ _('Back to home') }}
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

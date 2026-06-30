@@ -1,0 +1,107 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+
+# Git
+.git/
+.gitignore
+
+# Docker — Dockerfile et .dockerignore eux-mêmes sont gérés par buildx
+# (jamais COPY'd dans le runtime). On garde docker-compose.yml dans le
+# contexte parce qu'il est embarqué dans /opt/myeline-bundle.tar.gz
+# pour la self-extraction côté client (cf. Dockerfile RUN tar).
+Dockerfile
+.dockerignore
+
+# Documentation
+# docs/ est gardé dans le contexte parce qu'il fournit les fichiers
+# publics embarqués dans /opt/myeline-bundle.tar.gz. On exclut
+# explicitement les docs operator-only qui ne doivent PAS partir
+# chez les clients (gestion clients depuis l'opérateur, internals
+# licence, audits, ADR).
+README.md
+docs/CLIENT_ACCESS.md
+docs/LICENSE_SYSTEM.md
+docs/sovereign-mode-audit.md
+docs/adr/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Quality tools
+.flake8
+.isort.cfg
+.bandit
+.pylintrc
+
+# Large runtime directories (mounted as volumes)
+data/
+uploads/

@@ -1,0 +1,18 @@
+{% extends "base/base.html" %}
+{% block title %}{{ _('Page not found') }} – Myeline{% endblock %}
+{% block content %}
+<div class="container py-5 text-center">
+  <div class="liquid-glass mx-auto" style="max-width:480px">
+    <div class="p-4 p-md-5">
+      <div style="font-size:4rem">🔍</div>
+      <h1 class="h3 mt-3 mb-2">{{ _('Page not found') }}</h1>
+      <p class="text-muted mb-4">
+        {{ _('The page you are looking for does not exist or has been moved.') }}
+      </p>
+      <a href="{{ url_for('home.welcome_page') }}" class="btn btn-primary">
+        {{ _('Back to home') }}
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

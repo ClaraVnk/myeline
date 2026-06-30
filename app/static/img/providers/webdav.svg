@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Cloud body -->
+  <ellipse cx="50" cy="58" rx="38" ry="22" fill="#4A90D9"/>
+  <circle cx="30" cy="55" r="18" fill="#4A90D9"/>
+  <circle cx="58" cy="48" r="22" fill="#4A90D9"/>
+  <circle cx="72" cy="58" r="15" fill="#4A90D9"/>
+  <!-- WebDAV label -->
+  <rect x="22" y="60" width="56" height="22" rx="4" fill="#2265A8"/>
+  <text x="50" y="77" font-family="Arial,sans-serif" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">DAV</text>
+</svg>

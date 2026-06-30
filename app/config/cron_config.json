@@ -1,0 +1,4 @@
+{
+  "cleanup_rgpd": "0 3 * * *",
+  "run_weekly_scrappers": "0 6 * * *"
+}

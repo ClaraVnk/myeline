@@ -1,0 +1,40 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("My support tickets") }} — Myeline{% endblock %}
+{% block content %}
+<div class="container my-5" style="max-width:800px;">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 class="fw-bold mb-0">🎫 {{ _("My support tickets") }}</h2>
+    <a href="{{ url_for('user_tickets.ticket_new') }}" class="btn btn-primary btn-sm">+ {{ _("New ticket") }}</a>
+  </div>
+
+  {% if tickets %}
+  <div class="list-group">
+    {% for t in tickets %}
+    <a href="{{ url_for('user_tickets.ticket_detail', ticket_id=t.id) }}"
+       class="list-group-item list-group-item-action d-flex align-items-center justify-content-between gap-3 py-3">
+      <div class="flex-grow-1 min-w-0">
+        <div class="fw-semibold text-truncate">{{ t.subject }}</div>
+        <div class="small text-muted">{{ t.message_count }} {{ _("message(s)") }} · {{ t.created_at.strftime('%d/%m/%Y') }}</div>
+      </div>
+      <span class="badge rounded-pill
+        {% if t.status == 'open' %}bg-primary
+        {% elif t.status == 'in_progress' %}bg-warning text-dark
+        {% elif t.status == 'resolved' %}bg-success
+        {% else %}bg-secondary{% endif %}
+        flex-shrink-0">
+        {% if t.status == 'open' %}{{ _("Open") }}
+        {% elif t.status == 'in_progress' %}{{ _("In progress") }}
+        {% elif t.status == 'resolved' %}{{ _("Resolved") }}
+        {% else %}{{ _("Closed") }}{% endif %}
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <p class="mb-3">{{ _("No ticket yet.") }}</p>
+    <a href="{{ url_for('user_tickets.ticket_new') }}" class="btn btn-outline-primary">{{ _("Open a support ticket") }}</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

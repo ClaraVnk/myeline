@@ -1,0 +1,65 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("Ticket") }} #{{ ticket.id }} — Myeline{% endblock %}
+{% block content %}
+<div class="container my-5" style="max-width:720px;">
+  <div class="mb-3">
+    <a href="{{ url_for('user_tickets.ticket_list') }}" class="text-muted small">← {{ _("My tickets") }}</a>
+  </div>
+
+  <div class="d-flex align-items-start justify-content-between gap-3 mb-4 flex-wrap">
+    <div>
+      <h2 class="fw-bold mb-1">{{ ticket.subject }}</h2>
+      <span class="small text-muted">{{ _("Ticket") }} #{{ ticket.id }} · {{ ticket.created_at.strftime('%d/%m/%Y') }}</span>
+    </div>
+    <span class="badge rounded-pill fs-6
+      {% if ticket.status == 'open' %}bg-primary
+      {% elif ticket.status == 'in_progress' %}bg-warning text-dark
+      {% elif ticket.status == 'resolved' %}bg-success
+      {% else %}bg-secondary{% endif %}">
+      {% if ticket.status == 'open' %}{{ _("Open") }}
+      {% elif ticket.status == 'in_progress' %}{{ _("In progress") }}
+      {% elif ticket.status == 'resolved' %}{{ _("Resolved") }}
+      {% else %}{{ _("Closed") }}{% endif %}
+    </span>
+  </div>
+
+  <div class="d-flex flex-column gap-3 mb-4">
+    {% for msg in messages %}
+    <div class="d-flex {% if msg.is_staff %}flex-row-reverse{% endif %} gap-3 align-items-start">
+      <div class="flex-shrink-0 rounded-circle d-flex align-items-center justify-content-center"
+           style="width:36px;height:36px;background:{% if msg.is_staff %}var(--accent){% else %}var(--border-subtle){% endif %};">
+        {% if msg.is_staff %}🛠{% else %}👤{% endif %}
+      </div>
+      <div class="flex-grow-1">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;">
+          <div class="card-body p-3">
+            <p class="mb-0" style="white-space:pre-wrap;">{{ msg.body }}</p>
+          </div>
+        </div>
+        <div class="small text-muted mt-1 {% if msg.is_staff %}text-end{% endif %}">
+          {% if msg.is_staff %}{{ _("Support team") }}{% else %}{{ _("You") }}{% endif %}
+          · {{ msg.created_at.strftime('%d/%m/%Y %H:%M') }}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if ticket.status not in ('resolved', 'closed') %}
+  <form method="POST" class="mt-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+      <label class="form-label fw-semibold">{{ _("Your reply") }}</label>
+      <textarea name="body" class="form-control" rows="4" required
+                placeholder="{{ _('Add a message…') }}"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">{{ _("Send") }}</button>
+  </form>
+  {% else %}
+  <div class="alert alert-secondary">
+    {{ _("This ticket is closed. Open a new one if you need further help.") }}
+    <a href="{{ url_for('user_tickets.ticket_new') }}" class="alert-link">{{ _("New ticket") }}</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

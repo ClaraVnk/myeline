@@ -1,0 +1,216 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("Two-factor authentication") }} — Myeline{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="max-width: 600px;">
+  <div class="d-flex align-items-center mb-4 gap-2">
+    <a href="{{ url_for('user.account_settings') }}" class="btn btn-outline-secondary btn-sm">←</a>
+    <h2 class="fw-bold mb-0">🔐 {{ _("Two-factor authentication") }}</h2>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} py-2 small">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {# ── 2FA already enabled ──────────────────────────────────────────────── #}
+  {% if step == "enabled" %}
+  <div class="card border-success mb-4">
+    <div class="card-body">
+      <p class="fw-semibold text-success mb-1">✅ {{ _("Two-factor authentication is active.") }}</p>
+      <p class="small text-muted mb-0">
+        {% if current_user.twofa_method == "totp" %}
+          {{ _("Method: authenticator app (TOTP).") }}
+        {% else %}
+          {{ _("Method: email OTP.") }}
+        {% endif %}
+      </p>
+    </div>
+  </div>
+  {# ── Switch method (without disabling first) ──────────────────────────── #}
+  {# Le backend (setup_2fa) accepte generate_totp / enable_email même quand la
+     2FA est déjà active et met à jour twofa_method : on expose donc la
+     bascule directe, au lieu d'obliger à tout désactiver d'abord. #}
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title mb-3">{{ _("Use a different method") }}</h5>
+      {% if current_user.twofa_method != "totp" %}
+      <div class="d-flex align-items-start gap-3 mb-3">
+        <span style="font-size:1.6rem;">📱</span>
+        <div class="flex-grow-1">
+          <p class="mb-1 fw-medium">{{ _("Authenticator app") }}</p>
+          <p class="small text-muted mb-2">{{ _("Google Authenticator, Authy, 1Password, Bitwarden…") }}</p>
+          <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="generate_totp">
+            <button type="submit" class="btn btn-outline-primary btn-sm">{{ _("Set up") }}</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+      {% if current_user.twofa_method != "email" %}
+      <div class="d-flex align-items-start gap-3">
+        <span style="font-size:1.6rem;">✉️</span>
+        <div class="flex-grow-1">
+          <p class="mb-1 fw-medium">{{ _("Email") }}</p>
+          <p class="small text-muted mb-2">{{ _("Receive a code at your registered email address.") }}</p>
+          <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="enable_email">
+            <button type="submit" class="btn btn-outline-primary btn-sm">{{ _("Send code") }}</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title text-danger mb-3">{{ _("Disable 2FA") }}</h5>
+      <p class="small text-muted">{{ _("Warning: you will be required to set up 2FA again before accessing your account.") }}</p>
+      <form method="POST" action="{{ url_for('user_2fa.disable_2fa') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="mb-3">
+          <label for="password" class="form-label fw-medium">{{ _("Current password") }}</label>
+          <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
+        </div>
+        {# Bug X6 — data-confirm-click au lieu d'onclick inline. #}
+        <button type="submit" class="btn btn-outline-danger"
+                data-confirm-click="{{ _('Are you sure you want to disable two-factor authentication?') }}">
+          {{ _("Disable 2FA") }}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  {# ── Choose method ───────────────────────────────────────────────────── #}
+  {% elif step == "choose" %}
+  <p class="text-muted mb-4">{{ _("Choose how you want to receive your verification codes.") }}</p>
+
+  <div class="row g-3 mb-4">
+    {# TOTP card #}
+    <div class="col-12">
+      <div class="card h-100">
+        <div class="card-body d-flex align-items-start gap-3">
+          <span style="font-size:2rem;">📱</span>
+          <div class="flex-grow-1">
+            <h5 class="card-title mb-1">{{ _("Authenticator app") }}</h5>
+            <p class="small text-muted mb-2">{{ _("Google Authenticator, Authy, 1Password, Bitwarden…") }}</p>
+            <form method="POST">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="action" value="generate_totp">
+              <button type="submit" class="btn btn-primary btn-sm">{{ _("Set up") }}</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Email OTP card #}
+    <div class="col-12">
+      <div class="card h-100">
+        <div class="card-body d-flex align-items-start gap-3">
+          <span style="font-size:2rem;">✉️</span>
+          <div class="flex-grow-1">
+            <h5 class="card-title mb-1">{{ _("Email") }}</h5>
+            <p class="small text-muted mb-2">{{ _("Receive a code at your registered email address.") }}</p>
+            <form method="POST">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="action" value="enable_email">
+              <button type="submit" class="btn btn-primary btn-sm">{{ _("Send code") }}</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Confirm TOTP ────────────────────────────────────────────────────── #}
+  {% elif step == "confirm_totp" %}
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title mb-3">1. {{ _("Scan the QR code") }}</h5>
+      <p class="small text-muted mb-3">{{ _("Open your authenticator app and scan this QR code.") }}</p>
+      <div class="text-center mb-3">
+        {% if qr_b64 %}
+        <img src="data:image/png;base64,{{ qr_b64 }}" alt="QR Code TOTP" width="220" height="220" style="image-rendering:pixelated;">
+        {% else %}
+        <p class="text-danger small">{{ _("QR code unavailable. Use the key below.") }}</p>
+        {% endif %}
+      </div>
+      <p class="small text-muted text-center mb-1">{{ _("Or enter this key manually:") }}</p>
+      <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+        <code id="totp-secret" class="fs-6 fw-bold">{{ secret }}</code>
+        {# Bug X6 — id + addEventListener (CSP3 nonce). #}
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="copy-totp-btn">📋</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title mb-3">2. {{ _("Enter the code shown in the app") }}</h5>
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="confirm_totp">
+        <div class="mb-3">
+          <label for="totp_code" class="form-label fw-medium">{{ _("Verification code") }}</label>
+          <input type="text" id="totp_code" name="totp_code"
+                 class="form-control form-control-lg text-center fw-bold"
+                 inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+                 autocomplete="one-time-code" autofocus placeholder="000000" required>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">{{ _("Activate 2FA") }}</button>
+          <a href="{{ url_for('user_2fa.setup_2fa') }}" class="btn btn-outline-secondary">{{ _("Cancel") }}</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {# ── Confirm Email OTP ───────────────────────────────────────────────── #}
+  {% elif step == "confirm_email" %}
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title mb-3">{{ _("Enter the email code") }}</h5>
+      <p class="small text-muted mb-3">{{ _("A 6-digit code was sent to your email address.") }}</p>
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="confirm_email">
+        <div class="mb-3">
+          <label for="email_code" class="form-label fw-medium">{{ _("Verification code") }}</label>
+          <input type="text" id="email_code" name="email_code"
+                 class="form-control form-control-lg text-center fw-bold"
+                 inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+                 autocomplete="one-time-code" autofocus placeholder="000000" required>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">{{ _("Activate 2FA") }}</button>
+          <a href="{{ url_for('user_2fa.setup_2fa') }}" class="btn btn-outline-secondary">{{ _("Cancel") }}</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}{{ super() }}
+{% if step == "confirm_totp" %}
+<script nonce="{{ csp_nonce() }}">
+  function copySecret() {
+    navigator.clipboard.writeText(document.getElementById("totp-secret").textContent.trim())
+      .then(() => alert("{{ _('Key copied!') }}"))
+      .catch(() => {});
+  }
+  // Bug X6 — wire copy button via addEventListener.
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('copy-totp-btn');
+    if (btn) btn.addEventListener('click', copySecret);
+  });
+</script>
+{% endif %}
+{% endblock %}

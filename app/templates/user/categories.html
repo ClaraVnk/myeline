@@ -1,0 +1,35 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("Categories") }} — Myeline{% endblock %}
+{% block content %}
+<div class="container my-5" style="max-width: 900px;">
+  <h2 class="fw-bold mb-4">📂 {{ _("Categories") }}</h2>
+
+  {% if newsletters %}
+  {% for nl in newsletters %}
+  <div class="card mb-3 shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span class="fw-semibold">{{ nl.subject or nl.date }}</span>
+      <small class="text-muted">{{ nl.date.strftime("%d/%m/%Y") if nl.date else "" }}</small>
+    </div>
+    {% set sections = sections_by_newsletter.get(nl.id, []) %}
+    {% if sections %}
+    <div class="card-body p-0">
+      <ul class="list-group list-group-flush">
+        {% for s in sections %}
+        <li class="list-group-item">
+          <span class="badge bg-secondary me-2">{{ s.theme or "—" }}</span>
+          {{ s.titre or "" }}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <p>{{ _("No content available yet.") }}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

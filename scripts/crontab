@@ -1,0 +1,53 @@
+# Myeline cron schedule — fed to supercronic in the `cron` sidecar.
+# Format is standard crontab. Each entry execs `flask run-cron <task>`
+# inside the same image as the web container.
+#
+# When you change a CRON_SCHEDULE in app/cron/<module>.py, mirror the
+# new line here and redeploy. The Python value is the source of truth
+# for the admin UI label; this file is the source of truth for the
+# actual scheduler.
+#
+# m  h  dom  mon  dow  command
+
+# Every 5 minutes — sample dependency state for the public /status page
+*/5 *  *    *    *   flask run-cron record_status
+
+# Every hour — tenant → central stats push (Enterprise only; no-op on the central instance itself)
+
+# Three off-peak fires per day (03:00, 07:00, 23:00 UTC) — refresh personal
+# RSS / web sources outside the user-prime window. Pro+ feature only, so the
+# cron is gated user-side; shifting away from /6h cuts daytime CPU bursts.
+0   3,7,23 *    *    *   flask run-cron check_user_scrapers
+
+# Every 4 hours — sync cloud storage connections (per-user tier floor in
+# code keeps Standard accounts to one daily run, Pro+ to four).
+0   */4 *  *    *   flask run-cron check_cloud_sync
+
+# Daily 02:30 UTC — DB + ChromaDB + tenant volume backups
+30  2  *    *    *   flask run-cron backup_databases
+
+# Daily 08:00 / 20:00 UTC — keyword watch alerts (digest twice a day,
+# kept at user-time-of-day on purpose: this fires user-facing emails).
+0   8  *    *    *   flask run-cron check_watch_alerts
+0   20 *    *    *   flask run-cron check_watch_alerts
+
+# Daily 04:00 UTC — quota check + admin alerts (moved from 09:00 to night)
+
+# Daily 10:00 UTC — reminder emails for unconfirmed accounts
+0   10 *    *    *   flask run-cron remind_unconfirmed_users
+
+# Hourly :00 — recap digest dispatch (per-user frequency gates inside the task)
+0   *  *    *    *   flask run-cron send_recap_digests
+
+# Sunday 02:00 UTC — RGPD cleanup (delete unconfirmed > 30 d)
+0   2  *    *    0   flask run-cron cleanup_rgpd
+
+# Sunday 03:00 UTC — RGPD anonymise inactive > 3 y
+0   3  *    *    0   flask run-cron data_retention_rgpd
+
+# Sunday 03:30 UTC — archive audit log to S3 (no-op when AUDIT_S3_BUCKET unset)
+30  3  *    *    0   flask run-cron archive_audit_log
+
+# Every 30 minutes — reap stale OrgInstance rows stuck in "provisioning"
+# > 1 h (audit round 4 A4-M2). Flips them to "failed" + records an audit
+# trail so a SIGKILL during provisioning doesn't leave invisible orphans.

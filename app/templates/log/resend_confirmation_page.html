@@ -1,0 +1,47 @@
+{% extends "base/base.html" %}
+{% block title %}{{ _("Email confirmation required") }} — Myeline{% endblock %}
+{% block content %}
+  <div class="container d-flex justify-content-center align-items-center flex-grow-1 py-5">
+    <div class="bg-white p-4 rounded shadow-sm" style="max-width: 600px; width: 100%;">
+      <h2 class="text-center mb-3">📧 {{ _("Email confirmation required") }}</h2>
+
+      {% if confirmation_sent %}
+        <p class="text-center lead">
+          {{ _("A confirmation link has been sent to your email address.") }}
+        </p>
+        <p class="text-center"><strong>{{ _("Please click the link to activate your account.") }}</strong></p>
+        <p class="text-center text-muted">{{ _("Can't find the email? Check your spam folder.") }}</p>
+        <hr class="my-4">
+      {% endif %}
+
+      <h4 class="text-center mb-3">🔁 {{ _("Resend confirmation email") }}</h4>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ _('Close') }}"></button>
+          </div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="recaptcha_token" id="recaptcha_token">
+        <div class="mb-3">
+          <label for="email" class="form-label">{{ _("Email address") }}</label>
+          <input type="email" class="form-control" name="email" id="email" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">🔁 {{ _("Resend") }}</button>
+      </form>
+    </div>
+  </div>
+<script src="https://www.google.com/recaptcha/api.js?render={{ config.RECAPTCHA_SITE_KEY }}"></script>
+<script nonce="{{ csp_nonce() }}">
+  grecaptcha.ready(function() {
+    grecaptcha.execute('{{ config.RECAPTCHA_SITE_KEY }}', {action: 'resend_confirmation'}).then(function(token) {
+      document.getElementById('recaptcha_token').value = token;
+    });
+  });
+</script>
+{% endblock %}

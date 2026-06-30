@@ -1,0 +1,136 @@
+{% extends "base/base.html" %}
+{% block title %}Myeline — {{ _("Self-hosted bibliographic watch & RAG.") }}{% endblock %}
+{% block content %}
+
+<!-- ── Hero ──────────────────────────────────────────────────────────── -->
+<section class="text-center pt-5 pb-4">
+  <div class="mx-auto" style="max-width:760px;">
+    <p class="mb-2 text-uppercase fw-semibold" style="font-size:.75rem;letter-spacing:.12em;color:var(--accent);">
+      <i class="bi bi-hdd-network me-1"></i>{{ _("Open source · self-hosted · single user") }}
+    </p>
+    <h1 class="fw-bold mb-3" style="font-size:clamp(2.2rem,5vw,3.5rem);letter-spacing:-0.03em;">
+      {{ _("Your bibliographic watch & RAG, self-hosted.") }}
+    </h1>
+    <p class="mb-4" style="color:var(--text-secondary);font-size:clamp(1rem,2vw,1.2rem);">
+      {{ _("Index your sources — RSS feeds, cloud drives, your own library — and query them in natural language with cited answers. Everything stays on your own server.") }}
+    </p>
+    <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 mb-3">
+      <a href="{{ url_for('auth.login') }}" class="btn btn-primary px-4 py-2 d-inline-flex align-items-center justify-content-center gap-2" style="border-radius:var(--radius-md);">
+        <i class="bi bi-box-arrow-in-right"></i> {{ _("Log in") }}
+      </a>
+      <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary px-4 py-2 d-inline-flex align-items-center justify-content-center gap-2" style="border-radius:var(--radius-md);">
+        <i class="bi bi-person-plus"></i> {{ _("Create an account") }}
+      </a>
+    </div>
+    <p class="text-muted" style="font-size:.8rem;">
+      <i class="bi bi-shield-lock me-1"></i>{{ _("Your data never leaves your infrastructure.") }}
+    </p>
+  </div>
+</section>
+
+<hr class="my-5" style="border-color:rgba(0,0,0,.07);">
+
+<!-- ── Features ──────────────────────────────────────────────────────── -->
+<section class="py-4 text-center">
+  <p class="mb-1 text-uppercase fw-semibold" style="font-size:.75rem;letter-spacing:.1em;color:var(--accent);">{{ _("Features") }}</p>
+  <h2 class="fw-semibold mb-4" style="font-size:clamp(1.5rem,3vw,2.2rem);">{{ _("What you can do") }}</h2>
+
+  <div class="row g-4 justify-content-center">
+    <div class="col-sm-6 col-md-4 col-lg-4">
+      <div class="p-3">
+        <div class="mb-2 fs-2">☁️</div>
+        <h6 class="fw-semibold mb-1">{{ _("Cloud connectors") }}</h6>
+        <p class="small mb-0" style="color:var(--text-secondary);">{{ _("Connect Google Drive, OneDrive, Dropbox, kDrive or Zotero. Your documents are indexed and searchable locally.") }}</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-4 col-lg-4">
+      <div class="p-3">
+        <div class="mb-2 fs-2">📡</div>
+        <h6 class="fw-semibold mb-1">{{ _("RSS sources") }}</h6>
+        <p class="small mb-0" style="color:var(--text-secondary);">{{ _("Add any RSS feed or web page to your watch. New articles are fetched and indexed automatically.") }}</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-4 col-lg-4">
+      <div class="p-3">
+        <div class="mb-2 fs-2">📚</div>
+        <h6 class="fw-semibold mb-1">{{ _("Personal library") }}</h6>
+        <p class="small mb-0" style="color:var(--text-secondary);">{{ _("Upload your own PDFs and documents to build a private, searchable knowledge base.") }}</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-4 col-lg-4">
+      <div class="p-3">
+        <div class="mb-2 fs-2">🔍</div>
+        <h6 class="fw-semibold mb-1">{{ _("Cited RAG") }}</h6>
+        <p class="small mb-0" style="color:var(--text-secondary);">{{ _("Ask questions in natural language. Each answer cites its sources with a relevance score.") }}</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-4 col-lg-4">
+      <div class="p-3">
+        <div class="mb-2 fs-2">📬</div>
+        <h6 class="fw-semibold mb-1">{{ _("Digests") }}</h6>
+        <p class="small mb-0" style="color:var(--text-secondary);">{{ _("Get a summary of new content from your sources — daily, weekly or monthly.") }}</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-4 col-lg-4">
+      <div class="p-3">
+        <div class="mb-2 fs-2">🔑</div>
+        <h6 class="fw-semibold mb-1">{{ _("OAuth & 2FA") }}</h6>
+        <p class="small mb-0" style="color:var(--text-secondary);">{{ _("Sign in with Google, Microsoft or Apple, and enable TOTP two-factor authentication.") }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── AI & sovereignty ──────────────────────────────────────────────── -->
+<section class="py-5 text-center" style="background:rgba(0,122,255,.04);border-radius:1.5rem;">
+  <p class="mb-1 text-uppercase fw-semibold" style="font-size:.75rem;letter-spacing:.1em;color:var(--accent);">{{ _("AI & sovereignty") }}</p>
+  <h2 class="fw-semibold mb-2" style="font-size:clamp(1.4rem,3vw,2rem);">{{ _("Your AI, your rules.") }}</h2>
+  <p class="mb-4 mx-auto" style="color:var(--text-secondary);max-width:660px;">
+    {{ _("Bring your own keys for Mistral, OpenAI, Claude or Gemini — or run a 100%% local LLM via Ollama for a fully air-gapped setup. Either way, your documents and queries stay on your own infrastructure.") }}
+  </p>
+  <div class="row g-4 justify-content-center">
+    <div class="col-sm-6 col-md-4">
+      <div class="p-3">
+        <div class="mb-2 fs-2">🤖</div>
+        <h6 class="fw-semibold mb-1">{{ _("Multi-LLM BYOK") }}</h6>
+        <p class="small mb-0" style="color:var(--text-secondary);">{{ _("Choose your provider — Mistral, OpenAI, Claude or Gemini — and use your own API key.") }}</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-4">
+      <div class="p-3">
+        <div class="mb-2 fs-2">🖥️</div>
+        <h6 class="fw-semibold mb-1">{{ _("Fully local via Ollama") }}</h6>
+        <p class="small mb-0" style="color:var(--text-secondary);">{{ _("Run open models locally with Ollama — zero external API calls, nothing leaves your network.") }}</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-4">
+      <div class="p-3">
+        <div class="mb-2 fs-2">🔒</div>
+        <h6 class="fw-semibold mb-1">{{ _("Your data, your server") }}</h6>
+        <p class="small mb-0" style="color:var(--text-secondary);">{{ _("Documents, embeddings and indexes are stored on the machine you control. No third-party hosting.") }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Open source ───────────────────────────────────────────────────── -->
+<section class="py-5 text-center">
+  <p class="mb-1 text-uppercase fw-semibold" style="font-size:.75rem;letter-spacing:.1em;color:var(--accent);">{{ _("Open source") }}</p>
+  <h2 class="fw-semibold mb-2" style="font-size:clamp(1.4rem,3vw,2rem);">{{ _("Free, transparent, auditable.") }}</h2>
+  <p class="mb-4 mx-auto" style="color:var(--text-secondary);max-width:620px;">
+    {{ _("Myeline Community Edition is released under the AGPL-3.0 license. Read the code, deploy it yourself, contribute back.") }}
+  </p>
+  <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+    <a href="https://github.com/ClaraVnk/myeline" target="_blank" rel="noopener" class="btn btn-outline-primary px-4 d-inline-flex align-items-center justify-content-center gap-2" style="border-radius:var(--radius-md);">
+      <i class="bi bi-github"></i> {{ _("View on GitHub") }}
+    </a>
+    <a href="https://wiki.myeline.io/editions/community/" target="_blank" rel="noopener" class="btn btn-outline-primary px-4 d-inline-flex align-items-center justify-content-center gap-2" style="border-radius:var(--radius-md);">
+      <i class="bi bi-book"></i> {{ _("Read the docs") }}
+    </a>
+    <a href="https://github.com/ClaraVnk/myeline/blob/main/LICENSE" target="_blank" rel="noopener" class="btn btn-outline-secondary px-4 d-inline-flex align-items-center justify-content-center gap-2" style="border-radius:var(--radius-md);">
+      <i class="bi bi-file-earmark-text"></i> AGPL-3.0
+    </a>
+  </div>
+</section>
+
+{% endblock %}

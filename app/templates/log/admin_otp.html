@@ -1,0 +1,66 @@
+{% extends "base/base.html" %}
+{% block title %}Vérification admin — Myeline{% endblock %}
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center flex-grow-1 py-5" style="min-height: calc(100vh - 200px);">
+  <div class="liquid-glass p-4 p-md-5" style="max-width: 420px; width: 100%;">
+    <div class="text-center mb-4">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Myeline" class="rounded mx-auto d-block mb-3" style="max-width: 80px; height: auto;">
+      <h2 class="fw-bold mb-1">Vérification en deux étapes</h2>
+      {% if use_totp %}
+      <p class="text-muted small mb-0">
+        🔐 Ouvrez votre application d'authentification et saisissez le code à 6 chiffres.
+      </p>
+      {% else %}
+      <p class="text-muted small mb-0">
+        Un code a été envoyé à <strong>{{ hint }}</strong>.
+        <br>Si vous ne le recevez pas, consultez les logs du serveur.
+      </p>
+      {% endif %}
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+      <div class="alert alert-{{ category }} py-2 small">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% if dev_code %}
+    <div class="alert alert-warning py-2 small mb-3">
+      <strong>Mode dev —</strong> email non envoyé (Brevo non configuré).<br>
+      Code : <strong style="font-size:1.3em;letter-spacing:.15em;">{{ dev_code }}</strong>
+    </div>
+    {% endif %}
+
+    {# autocomplete ON so the OS can auto-fill the emailed one-time code. #}
+    <form method="POST" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="mb-3">
+        <label for="otp_code" class="form-label fw-medium">
+          {% if use_totp %}Code de l'application{% else %}Code de vérification{% endif %}
+        </label>
+        <input type="text"
+               id="otp_code"
+               name="otp_code"
+               class="form-control form-control-lg text-center fw-bold"
+               inputmode="numeric"
+               pattern="[0-9]{6}"
+               maxlength="6"
+               {% if use_totp %}autocomplete="one-time-code"{% else %}autocomplete="one-time-code"{% endif %}
+               autofocus
+               placeholder="000000"
+               required>
+        {% if use_totp %}
+        <div class="form-text text-center">Le code change toutes les 30 secondes.</div>
+        {% endif %}
+      </div>
+      <div class="d-grid mb-3">
+        <button type="submit" class="btn btn-primary">Vérifier</button>
+      </div>
+    </form>
+
+    <div class="text-center small text-muted">
+      <a href="{{ url_for('admin.admin_login') }}" class="text-decoration-none">← Recommencer la connexion</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

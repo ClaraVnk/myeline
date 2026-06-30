@@ -1,0 +1,22 @@
+# Development dependencies
+# Install with: pip install -r requirements.txt -r requirements-dev.txt
+
+# Testing
+pytest>=7.4.0,<9.0.0
+pytest-cov>=4.1.0,<8.0.0
+pytest-mock>=3.11.0,<4.0.0
+pytest-xdist>=3.0.0,<4.0.0
+
+# Code Quality
+flake8>=6.0.0,<8.0.0
+isort>=5.12.0,<6.0.0
+bandit>=1.7.0,<2.0.0
+black>=23.0.0,<26.0.0
+mypy>=1.0.0,<2.0.0
+
+# Development Tools
+ipython>=8.12.0,<9.0.0
+ipdb>=0.13.0,<1.0.0
+
+# Container Tools (system binaries, not pip — listed here for reference)
+# lazydocker v0.25.2 — install: curl -sL https://github.com/jesseduffield/lazydocker/releases/download/v0.25.2/lazydocker_0.25.2_Linux_x86_64.tar.gz | sudo tar -xz -C /usr/local/bin lazydocker

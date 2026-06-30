@@ -1,0 +1,112 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("My index") }} — Myeline{% endblock %}
+{% block content %}
+<div class="container my-5" style="max-width:800px;">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">🗂️ {{ _("My personal index") }}</h2>
+      <p class="text-muted small mb-0">{{ _("Documents and articles indexed in your private space.") }}</p>
+    </div>
+    <a href="{{ url_for('user_library.personal_library') }}" class="btn btn-outline-secondary btn-sm">← {{ _("My library") }}</a>
+  </div>
+
+  {% if available_tags %}
+  <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+    <span class="text-muted small me-1">🏷️ {{ _("Filter by tag:") }}</span>
+    <a href="{{ url_for('user_library.index_manager') }}"
+       class="badge rounded-pill {{ 'bg-primary' if not tag_filter else 'bg-secondary text-white' }} text-decoration-none">
+      {{ _("All") }}
+    </a>
+    {% for tag in available_tags %}
+    <a href="{{ url_for('user_library.index_manager', tag=tag.name) }}"
+       class="badge rounded-pill {{ 'bg-primary' if tag_filter == tag.name else 'bg-secondary text-white' }} text-decoration-none">
+      {{ tag.name }}
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if sources %}
+  <div id="sources-list">
+    {% set type_labels = {
+      'user_document': _('Document'),
+      'cloud_document': _('Cloud document'),
+      'user_scraper_article': _('RSS article')
+    } %}
+    <div class="list-group">
+      {% for s in sources %}
+      <div class="list-group-item d-flex align-items-center justify-content-between gap-3 py-3"
+           id="src-{{ s.source_type }}-{{ s.source_id }}">
+        <div class="flex-grow-1 min-w-0">
+          <div class="fw-semibold text-truncate">{{ s.title }}</div>
+          <div class="small text-muted">
+            <span class="badge bg-secondary me-1">{{ type_labels.get(s.source_type, s.source_type) }}</span>
+            {{ s.chunk_count }} {{ _("chunk(s)") }}
+            {% for tag in s.get('tags', []) %}
+            <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary ms-1" style="font-size:.65rem;">{{ tag.name }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {# Bug X6 — data-* attributes + addEventListener (CSP3 nonce
+           bloque les onclick inline). #}
+        <button class="btn btn-sm btn-outline-danger flex-shrink-0 js-delete-source-btn"
+                data-source-type="{{ s.source_type }}"
+                data-source-id="{{ s.source_id }}">
+          🗑 {{ _("Remove from index") }}
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <p>{% if tag_filter %}{{ _("No indexed content with this tag.") }}{% else %}{{ _("Your personal index is empty.") }}{% endif %}</p>
+  </div>
+  {% endif %}
+</div>
+
+{% block scripts %}{{ super() }}
+<script nonce="{{ csp_nonce() }}">
+const CSRF = document.querySelector('meta[name="csrf-token"]').content;
+
+async function deleteSource(sourceType, sourceId, btn) {
+  if (!confirm("{{ _('Remove this entry from your index? The source document is not deleted.') }}")) return;
+  btn.disabled = true;
+  btn.textContent = "…";
+  try {
+    const r = await fetch("{{ url_for('user_library.delete_indexed_source') }}", {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "X-CSRFToken": CSRF},
+      body: JSON.stringify({source_type: sourceType, source_id: sourceId}),
+    });
+    const data = await r.json();
+    if (data.success) {
+      const row = document.getElementById(`src-${sourceType}-${sourceId}`);
+      if (row) row.remove();
+      const list = document.getElementById("sources-list");
+      if (list && !list.querySelector(".list-group-item")) {
+        list.innerHTML = '<p class="text-muted text-center py-4">{{ _("Your personal index is empty.") }}</p>';
+      }
+    } else {
+      alert(data.error || "Erreur.");
+      btn.disabled = false;
+      btn.textContent = "🗑 {{ _('Remove from index') }}";
+    }
+  } catch {
+    alert("Erreur réseau.");
+    btn.disabled = false;
+    btn.textContent = "🗑 {{ _('Remove from index') }}";
+  }
+}
+
+// Bug X6 — wire les boutons via addEventListener.
+document.addEventListener("DOMContentLoaded", function() {
+  document.querySelectorAll(".js-delete-source-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      deleteSource(btn.dataset.sourceType, btn.dataset.sourceId, btn);
+    });
+  });
+});
+</script>
+{% endblock %}
+{% endblock %}

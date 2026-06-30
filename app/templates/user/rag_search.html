@@ -1,0 +1,788 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("Smart search") }} — Myeline{% endblock %}
+
+{% block content %}
+<style nonce="{{ csp_nonce() }}">
+/* Citation interactions: clickable [N] links + flash + keyword mark.
+   Kept inline because the search page is the only consumer; promoting
+   it to a global stylesheet would just bloat every other route. */
+.cit-link { text-decoration: none; font-weight: 600; color: var(--bs-primary); cursor: pointer; }
+.cit-link:hover { text-decoration: underline; }
+.citation-flash { animation: citation-flash 1.5s ease-out; }
+@keyframes citation-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(0,122,255,.45); background: rgba(0,122,255,.10); }
+  100% { box-shadow: 0 0 0 12px rgba(0,122,255,0);   background: transparent; }
+}
+mark.cit-hl { background: rgba(255,196,0,.45); padding: 0 2px; border-radius: 2px; }
+
+/* Pending assistant bubble — typing dots while the RAG pipeline runs.
+   Three dots that bounce in sequence; ~1.4s loop. The label next to
+   them updates ("Searching…", "Writing the answer…") as the worker
+   reports each stage so the user always sees forward motion. */
+.rag-typing-dots { display: inline-flex; gap: 4px; vertical-align: middle; margin-left: 6px; }
+.rag-typing-dots span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--bs-primary, #007aff);
+  display: inline-block;
+  animation: rag-typing-bounce 1.4s ease-in-out infinite;
+}
+.rag-typing-dots span:nth-child(2) { animation-delay: .15s; }
+.rag-typing-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes rag-typing-bounce {
+  0%, 60%, 100% { transform: translateY(0);   opacity: .4; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}
+.rag-stage-label {
+  color: var(--text-secondary, #6e6e73);
+  font-style: italic;
+  transition: opacity .25s ease;
+}
+</style>
+<div class="container py-5" style="max-width: 780px;">
+
+  <div class="mb-4">
+    <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+      {% if document_context %}
+        <h2 class="fw-semibold mb-0">📄 {{ _("Chat with document") }}</h2>
+      {% else %}
+        <h2 class="fw-semibold mb-0">🔍 {{ _("Smart search") }}</h2>
+      {% endif %}
+      <span class="badge px-2 py-1" style="background:rgba(52,199,89,.15);color:#1a7a38;font-size:.7rem;border-radius:.5rem;">🔒 {{ _("100%% local processing") }}</span>
+      {% set _is_pro_plus = sovereign_mode or current_user.is_admin or current_user.is_pro_subscriber or current_user.is_org_member %}
+      {% if _is_pro_plus %}
+      <button id="ragOpenConversations" class="btn btn-sm btn-outline-secondary ms-auto" type="button"
+              data-bs-toggle="offcanvas" data-bs-target="#convsPanel" aria-controls="convsPanel"
+              title="{{ _('Browse past conversations') }}">
+        📚 {{ _("My conversations") }}
+      </button>
+      <button id="ragNewConversation" class="btn btn-sm btn-outline-secondary d-none" type="button">
+        ✨ {{ _("New conversation") }}
+      </button>
+      {% endif %}
+    </div>
+
+    {# ── Conversations sidebar (offcanvas) ─────────────────────────── #}
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="convsPanel" aria-labelledby="convsPanelLabel"
+         style="width: min(420px, 100vw);">
+      <div class="offcanvas-header border-bottom">
+        <h6 class="offcanvas-title" id="convsPanelLabel">📚 {{ _("My conversations") }}</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+      </div>
+      <div class="offcanvas-body p-0">
+        <div id="convsList" class="list-group list-group-flush">
+          <div class="text-muted small p-3" id="convsLoading">{{ _("Loading…") }}</div>
+        </div>
+      </div>
+    </div>
+    {% if document_context %}
+      <p class="text-muted mb-0">
+        {{ _("Single-document conversation. Retrieval is scoped to:") }}
+        <strong>{{ document_context.title }}</strong>
+      </p>
+    {% endif %}
+    <p class="text-muted mb-0">
+      {{ _("Ask a question in natural language — the AI answers using your indexed sources and documents.") }}
+      {{ _("Your queries never leave our servers.") }}
+    </p>
+    {% if stats and stats.indexed_sections > 0 %}
+      <small class="text-muted">{{ ngettext("%(num)d section indexed", "%(num)d sections indexed", stats.indexed_sections) }}</small>
+    {% endif %}
+  </div>
+
+  {# Multi-turn thread — empty until a conversation is in progress.
+     Each appended bubble keeps the user/assistant pair visible so follow-up
+     questions land in context. The form stays at the bottom and reuses
+     existing scope/date/strict controls without resetting between turns. #}
+  <div id="ragThread" class="mb-3"></div>
+
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+      <div class="mb-3">
+        <textarea
+          id="ragQuery"
+          class="form-control"
+          rows="3"
+          maxlength="400"
+          placeholder="{{ _('Ask a question in natural language…') }}"
+        >{{ initial_query | e }}</textarea>
+        <div class="d-flex justify-content-between mt-1">
+          <small class="text-muted" id="charCount">0 / 400</small>
+        </div>
+      </div>
+
+      {% if not document_context %}
+      <div class="mb-3">
+        <label class="form-label fw-semibold">{{ _("Search scope") }}</label>
+        <div class="d-flex gap-3 flex-wrap">
+          {% for val, label in [('shared', _('Shared watch')), ('personal', _('My documents')), ('both', _('Both'))] %}
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="ragScope" id="scope-{{ val }}"
+                   value="{{ val }}" {% if initial_scope == val %}checked{% endif %}>
+            <label class="form-check-label" for="scope-{{ val }}">{{ label }}</label>
+          </div>
+          {% endfor %}
+        </div>
+        <div id="myDocsHint" class="mt-1 {% if initial_scope != 'personal' and initial_scope != 'both' %}d-none{% endif %}">
+          <small class="text-muted">
+            <a href="{{ url_for('user_library.personal_library') }}" class="text-decoration-none">📁 {{ _("Manage my library") }}</a>
+          </small>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if tags and not document_context %}
+      <div class="mb-3" id="tagFilterBlock">
+        <label class="form-label fw-semibold">{{ _("Filter by theme") }} <span class="fw-normal text-muted">({{ _("optional") }})</span></label>
+        <select class="form-select form-select-sm" id="ragTag">
+          <option value="">{{ _("All themes") }}</option>
+          {% for tag in tags %}
+            <option value="{{ tag.name }}">{{ tag.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <div class="mb-3" id="dateFilterBlock">
+        <label class="form-label fw-semibold">{{ _("Filter by date") }} <span class="fw-normal text-muted">({{ _("optional") }})</span></label>
+        <select class="form-select form-select-sm" id="ragDateRange">
+          <option value="">{{ _("Any date") }}</option>
+          <option value="7">{{ _("Last 7 days") }}</option>
+          <option value="30">{{ _("Last 30 days") }}</option>
+          <option value="90">{{ _("Last 3 months") }}</option>
+          <option value="365">{{ _("Last year") }}</option>
+          <option value="custom">{{ _("Custom range…") }}</option>
+        </select>
+        <div id="ragDateCustom" class="d-none mt-2 d-flex gap-2 flex-wrap">
+          <input type="date" id="ragDateFrom" class="form-control form-control-sm" style="max-width: 12rem;">
+          <input type="date" id="ragDateTo" class="form-control form-control-sm" style="max-width: 12rem;">
+        </div>
+      </div>
+      {# Documents indexed before this feature shipped have no doc_date and are
+         excluded when a date filter is active. Re-index to include them. #}
+
+      {# Strict toggle is Pro+ only; Standard users get strict by default. #}
+      {% if _is_pro_plus %}
+      <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="ragStrictMode" checked>
+        <label class="form-check-label" for="ragStrictMode">
+          🛡️ <strong>{{ _("Strict mode") }}</strong>
+          <span class="text-muted small">— {{ _("only answer from your sources; no general-knowledge backfill") }}</span>
+        </label>
+      </div>
+      {% endif %}
+
+      <div class="d-flex gap-2 flex-wrap">
+        <button id="ragSubmit" class="btn btn-primary px-4">
+          🔍 {{ _("Search") }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ragExamples" class="mb-4">
+    <p class="text-muted small mb-2">{{ _("Sample questions:") }}</p>
+    <div class="d-flex flex-wrap gap-2">
+      {% for q in [
+        _("Summary of recent articles on topic X?"),
+        _("What are the key points from my documents on Y?"),
+        _("What's new in my sources this week?"),
+        _("Synthesis on theme Z in my documents?")
+      ] %}
+      <button class="btn btn-outline-secondary btn-sm example-q">{{ q }}</button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div id="ragResults" class="d-none">
+
+    <div id="ragLoading" class="d-none">
+      <div class="card border-0 shadow-sm mb-3 p-4">
+        <div class="placeholder-glow">
+          <span class="placeholder col-8 mb-2 d-block"></span>
+          <span class="placeholder col-10 mb-2 d-block"></span>
+          <span class="placeholder col-6 d-block"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="ragAnswer" class="d-none">
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+            <h6 class="fw-semibold text-primary mb-0">💡 {{ _("Summary") }}</h6>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span id="ragFreshnessBadge" class="badge bg-light text-dark border d-none" style="font-size:.7rem;"></span>
+              <span id="ragConfidenceBadge" class="badge px-3 py-2" style="font-size:.8rem;"></span>
+            </div>
+          </div>
+          <div id="ragAnswerText" class="lh-lg"></div>
+        </div>
+      </div>
+
+      <div id="ragSourcesBlock" class="d-none">
+        <h6 class="fw-semibold text-muted mb-2">📚 {{ _("Source excerpts") }}</h6>
+        <div class="accordion accordion-flush" id="ragSourcesAccordion"></div>
+      </div>
+    </div>
+
+    <div id="ragError" class="d-none alert alert-danger"></div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script nonce="{{ csp_nonce() }}">
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+  || "{{ csrf_token() }}";
+
+const I18N = {
+  searching: {{ _("Searching…") | tojson }},
+  search: {{ _("Search") | tojson }},
+  confidence: {{ _("confidence") | tojson }},
+  shared: {{ _("Shared") | tojson }},
+  myDocument: {{ _("My document") | tojson }},
+  viewNewsletter: {{ _("View newsletter →") | tojson }},
+  readArticle: {{ _("Read article →") | tojson }},
+  openInProvider: {{ _("Open in cloud →") | tojson }},
+  anErrorOccurred: {{ _("An error occurred.") | tojson }},
+  you: {{ _("You") | tojson }},
+  assistant: {{ _("Assistant") | tojson }},
+  // Pipeline progress milestones — surfaced in the assistant bubble while
+  // the worker walks the RAG pipeline so the user never stares at a
+  // silent spinner.
+  stageStarting:  {{ _("Understanding your question…") | tojson }},
+  stageEmbed:     {{ _("Understanding your question…") | tojson }},
+  stageRetrieve:  {{ _("Searching the knowledge base…") | tojson }},
+  stageRerank:    {{ _("Selecting the most relevant sources…") | tojson }},
+  stageSynth:     {{ _("Writing the answer…") | tojson }},
+};
+
+// Conversation state — null until the server returns a conversation_id;
+// from then on every submit threads onto the same Conversation row.
+let currentConversationId = null;
+// Document-scoped chat (#7) — populated from the template context when
+// the user landed on /ma-bibliotheque/chat/<type>/<id>; otherwise null
+// and the regular multi-source search runs.
+const DOCUMENT_SCOPE = {{ document_context.scope_token | tojson if document_context else 'null' }};
+const threadEl = document.getElementById("ragThread");
+const newConversationBtn = document.getElementById("ragNewConversation");
+if (newConversationBtn) {
+  newConversationBtn.addEventListener("click", () => {
+    currentConversationId = null;
+    threadEl.innerHTML = "";
+    newConversationBtn.classList.add("d-none");
+    queryEl.value = "";
+    charCount.textContent = "0 / 400";
+    queryEl.focus();
+  });
+}
+
+// ─── Conversations sidebar ─────────────────────────────────────────────
+// Lazy load the list when the user opens the panel; clicking an entry
+// fetches the full thread and replays it into the visible bubbles.
+const convsPanel = document.getElementById("convsPanel");
+const convsList = document.getElementById("convsList");
+const convsLoading = document.getElementById("convsLoading");
+
+if (convsPanel) {
+  convsPanel.addEventListener("show.bs.offcanvas", _loadConversationList);
+}
+
+async function _loadConversationList() {
+  convsLoading.classList.remove("d-none");
+  try {
+    const r = await fetch("{{ url_for('user_rag.rag_list_conversations') }}");
+    const data = await r.json();
+    convsLoading.classList.add("d-none");
+    convsList.innerHTML = "";
+    const rows = data.conversations || [];
+    if (!rows.length) {
+      convsList.innerHTML = `<div class="text-muted small p-3">${escHtml({{ _("No conversation yet — ask your first question to start one.") | tojson }})}</div>`;
+      return;
+    }
+    for (const c of rows) {
+      const item = document.createElement("div");
+      item.className = "list-group-item d-flex align-items-start gap-2 px-3 py-2";
+      item.innerHTML = `
+        <div class="flex-grow-1 min-width-0" style="cursor:pointer;" data-conv-id="${c.id}">
+          <div class="fw-semibold text-truncate">${escHtml(c.title || ("#" + c.id))}</div>
+          <div class="small text-muted">${escHtml(c.scope || "")} · ${c.updated_at ? new Date(c.updated_at).toLocaleString() : ""}</div>
+        </div>
+        <button class="btn btn-sm btn-link text-danger p-0" data-del-id="${c.id}"
+                title="{{ _("Delete this conversation") }}">🗑</button>`;
+      item.querySelector("[data-conv-id]").addEventListener("click",
+        () => _loadConversation(c.id));
+      item.querySelector("[data-del-id]").addEventListener("click", (e) => {
+        e.stopPropagation();
+        _deleteConversation(c.id, item);
+      });
+      convsList.appendChild(item);
+    }
+  } catch (err) {
+    convsLoading.classList.add("d-none");
+    convsList.innerHTML = `<div class="text-danger small p-3">${escHtml(I18N.anErrorOccurred)}</div>`;
+  }
+}
+
+async function _loadConversation(convId) {
+  try {
+    const r = await fetch(`/user/recherche/conversations/${convId}`);
+    if (!r.ok) throw new Error("not found");
+    const data = await r.json();
+    currentConversationId = data.id;
+    threadEl.innerHTML = "";
+    for (const t of (data.turns || [])) {
+      _appendThreadBubble(
+        t.role,
+        t.role === "user" ? escHtml(t.content) : formatAnswer(t.content || ""),
+      );
+    }
+    newConversationBtn.classList.remove("d-none");
+    // Close the offcanvas so the user sees the loaded thread.
+    const offc = bootstrap.Offcanvas.getInstance(convsPanel);
+    if (offc) offc.hide();
+    threadEl.lastElementChild?.scrollIntoView({behavior: "smooth", block: "nearest"});
+  } catch (err) {
+    alert(I18N.anErrorOccurred);
+  }
+}
+
+async function _deleteConversation(convId, itemEl) {
+  if (!confirm({{ _("Delete this conversation? This cannot be undone.") | tojson }})) return;
+  try {
+    const r = await fetch(`/user/recherche/conversations/${convId}`, {
+      method: "DELETE",
+      headers: {"X-CSRFToken": csrfToken},
+    });
+    if (!r.ok) throw new Error("delete failed");
+    itemEl.remove();
+    if (currentConversationId === convId) {
+      currentConversationId = null;
+      threadEl.innerHTML = "";
+      newConversationBtn.classList.add("d-none");
+    }
+  } catch (err) {
+    alert(I18N.anErrorOccurred);
+  }
+}
+
+function _appendThreadBubble(role, html) {
+  const wrap = document.createElement("div");
+  wrap.className = role === "user"
+    ? "card border-0 shadow-sm mb-2 ms-auto"
+    : "card border-0 shadow-sm mb-3";
+  wrap.style.maxWidth = "100%";
+  wrap.style.background = role === "user" ? "rgba(0,122,255,.08)" : "#fff";
+  wrap.innerHTML = `
+    <div class="card-body py-2 px-3">
+      <small class="text-muted fw-semibold">${role === "user" ? I18N.you : "💡 " + I18N.assistant}</small>
+      <div class="mt-1">${html}</div>
+    </div>`;
+  threadEl.appendChild(wrap);
+  return wrap;
+}
+
+// Append a "pending" assistant bubble: humane stage label + bouncing
+// dots. Returned element is mutated in-place by _setBubbleStage() during
+// polling, then by _finalizeBubble() once the answer arrives. Showing the
+// bubble immediately at submit time prevents the "is it bugged?" feeling
+// while embed/retrieve/rerank/synth runs (5-30 s on local Ollama).
+function _appendPendingAssistantBubble() {
+  const html = `
+    <span class="rag-stage-label">${escHtml(I18N.stageStarting)}</span>
+    <span class="rag-typing-dots" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </span>`;
+  const wrap = _appendThreadBubble("assistant", html);
+  wrap.dataset.pending = "1";
+  wrap.lastElementChild?.scrollIntoView({behavior: "smooth", block: "nearest"});
+  return wrap;
+}
+
+function _setBubbleStage(bubble, stage) {
+  if (!bubble) return;
+  const label = bubble.querySelector(".rag-stage-label");
+  if (!label) return;
+  // Map worker-side stage names to localised user-facing strings. Unknown
+  // stages keep the previous label rather than blanking the bubble.
+  const map = {
+    embed:    I18N.stageEmbed,
+    retrieve: I18N.stageRetrieve,
+    rerank:   I18N.stageRerank,
+    synth:    I18N.stageSynth,
+  };
+  const next = map[stage];
+  if (next && next !== label.textContent) {
+    label.style.opacity = "0";
+    setTimeout(() => { label.textContent = next; label.style.opacity = "1"; }, 120);
+  }
+}
+
+function _finalizeBubble(bubble, html) {
+  if (!bubble) return;
+  const body = bubble.querySelector(".card-body > div.mt-1");
+  if (body) body.innerHTML = html;
+  delete bubble.dataset.pending;
+}
+
+const queryEl    = document.getElementById("ragQuery");
+const submitBtn  = document.getElementById("ragSubmit");
+const charCount  = document.getElementById("charCount");
+const resultsEl  = document.getElementById("ragResults");
+const loadingEl  = document.getElementById("ragLoading");
+const answerEl   = document.getElementById("ragAnswer");
+const answerText = document.getElementById("ragAnswerText");
+const errorEl    = document.getElementById("ragError");
+const sourcesBlock = document.getElementById("ragSourcesBlock");
+const sourcesAccordion = document.getElementById("ragSourcesAccordion");
+const examplesEl = document.getElementById("ragExamples");
+
+charCount.textContent = `${queryEl.value.length} / 400`;
+queryEl.addEventListener("input", () => {
+  charCount.textContent = `${queryEl.value.length} / 400`;
+});
+
+if (queryEl.value.trim()) { runSearch(); }
+
+document.querySelectorAll(".example-q").forEach(btn => {
+  btn.addEventListener("click", () => {
+    queryEl.value = btn.textContent;
+    charCount.textContent = `${queryEl.value.length} / 400`;
+    queryEl.focus();
+  });
+});
+
+submitBtn.addEventListener("click", runSearch);
+queryEl.addEventListener("keydown", e => {
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) runSearch();
+});
+
+document.querySelectorAll('input[name="ragScope"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    const scope = radio.value;
+    const hint = document.getElementById('myDocsHint');
+    const tagBlock = document.getElementById('tagFilterBlock');
+    if (hint) hint.classList.toggle('d-none', scope === 'shared');
+    if (tagBlock) tagBlock.classList.toggle('d-none', scope === 'personal');
+  });
+});
+
+// Date filter — show the custom range inputs only when the user picks "custom".
+const dateRangeEl = document.getElementById("ragDateRange");
+const dateCustomEl = document.getElementById("ragDateCustom");
+if (dateRangeEl) {
+  dateRangeEl.addEventListener("change", () => {
+    dateCustomEl.classList.toggle("d-none", dateRangeEl.value !== "custom");
+  });
+}
+
+function _resolveDateRange() {
+  // Returns {from, to} as YYYY-MM-DD strings, or {from: null, to: null}.
+  if (!dateRangeEl) return { from: null, to: null };
+  const v = dateRangeEl.value;
+  if (!v) return { from: null, to: null };
+  if (v === "custom") {
+    return {
+      from: document.getElementById("ragDateFrom").value || null,
+      to:   document.getElementById("ragDateTo").value   || null,
+    };
+  }
+  // Preset (number of days) — compute "from" as today - N days.
+  const days = parseInt(v, 10);
+  if (!days) return { from: null, to: null };
+  const now = new Date();
+  const from = new Date(now.getTime() - days * 86400 * 1000);
+  const iso = d => d.toISOString().slice(0, 10);
+  return { from: iso(from), to: iso(now) };
+}
+
+async function runSearch() {
+  const query = queryEl.value.trim();
+  if (!query) { queryEl.focus(); return; }
+
+  const tag = document.getElementById("ragTag")?.value || "";
+  const scope = document.querySelector('input[name="ragScope"]:checked')?.value || "shared";
+  const { from: dateFrom, to: dateTo } = _resolveDateRange();
+  const strictMode = document.getElementById("ragStrictMode")?.checked !== false;
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>${I18N.searching}`;
+  resultsEl.classList.remove("d-none");
+  // The pending assistant bubble carries the visible "is working" state
+  // now, so the legacy `loadingEl` block stays hidden — keeping it would
+  // duplicate the spinner without adding signal.
+  loadingEl.classList.add("d-none");
+  answerEl.classList.add("d-none");
+  errorEl.classList.add("d-none");
+  examplesEl.classList.add("d-none");
+
+  // Push the user turn + pending assistant bubble immediately so the UI
+  // never goes quiet between submit and the first stage update.
+  _appendThreadBubble("user", escHtml(query));
+  const pendingBubble = _appendPendingAssistantBubble();
+
+  try {
+    // The /recherche/query route enqueues an RQ job and returns a job_id;
+    // we then poll /recherche/status/<id> until it finishes. This is the
+    // same pattern as the dashboard quick-search.
+    const enqResp = await fetch("{{ url_for('user_rag.rag_query') }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+      body: JSON.stringify({
+        query, tag: tag || null, scope,
+        date_from: dateFrom, date_to: dateTo,
+        strict_mode: strictMode,
+        conversation_id: currentConversationId,
+        document_scope: DOCUMENT_SCOPE,
+      }),
+    });
+    const enqData = await enqResp.json();
+    if (!enqResp.ok || enqData.error) {
+      throw new Error(enqData.error || I18N.anErrorOccurred);
+    }
+    const jobId = enqData.job_id;
+
+    const data = await (async function pollStatus() {
+      // 500 ms is short enough to feel reactive when the stage flips
+      // (embed → retrieve etc. each take 200-2000 ms) without flooding
+      // the status endpoint. MAX_ATTEMPTS × interval = 65 s which still
+      // covers a slow CPU-only Ollama synthesis (~30-40 s).
+      const POLL_INTERVAL_MS = 500;
+      const MAX_ATTEMPTS = 130;
+      for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+        const r = await fetch(`{{ url_for('user_rag.rag_status', job_id='__ID__') }}`.replace('__ID__', encodeURIComponent(jobId)));
+        const d = await r.json();
+        if (d.stage)                  _setBubbleStage(pendingBubble, d.stage);
+        if (d.status === "finished")  return d.result;
+        if (d.status === "failed")    throw new Error(d.error || I18N.anErrorOccurred);
+        if (d.status === "not_found") throw new Error(I18N.anErrorOccurred);
+      }
+      throw new Error(I18N.anErrorOccurred);
+    })();
+
+    // Latch the conversation id on the very first turn, then re-use it for
+    // every follow-up so the assistant sees prior context.
+    if (data.conversation_id) {
+      currentConversationId = data.conversation_id;
+      newConversationBtn.classList.remove("d-none");
+    }
+
+    // The user bubble + pending assistant bubble were appended at submit
+    // time; replace the pending bubble's body with the actual answer so
+    // the typing animation makes way for the rendered Markdown.
+    _finalizeBubble(pendingBubble, formatAnswer(data.answer || ""));
+
+    answerText.innerHTML = formatAnswer(data.answer || "");
+
+    const confidenceBadge = document.getElementById("ragConfidenceBadge");
+    if (data.sources && data.sources.length > 0) {
+      const avg = Math.round(data.sources.reduce((s, src) => s + (src.relevance || 0), 0) / data.sources.length);
+      const bg = avg >= 75 ? "#34c759" : avg >= 50 ? "#ff9500" : "#ff3b30";
+      confidenceBadge.textContent = avg + "% " + I18N.confidence;
+      confidenceBadge.style.background = bg;
+      confidenceBadge.style.color = "#fff";
+    } else {
+      confidenceBadge.textContent = "";
+    }
+
+    // Freshness — surfaces newest source date + median age. The visual
+    // signal lets the user see at a glance whether the answer rests on
+    // 3-day-old articles or 4-year-old PDFs without opening every source.
+    const freshBadge = document.getElementById("ragFreshnessBadge");
+    if (data.freshness && data.freshness.newest_iso) {
+      const f = data.freshness;
+      let label;
+      if (f.newest_age_days <= 0) label = I18N.freshToday;
+      else if (f.newest_age_days === 1) label = I18N.freshYesterday;
+      else label = I18N.freshNewest.replace("%(date)s", f.newest_iso);
+      freshBadge.textContent = "📅 " + label + " · " + I18N.freshMedian.replace("%(days)d", f.median_age_days);
+      freshBadge.classList.remove("d-none");
+    } else {
+      freshBadge.classList.add("d-none");
+    }
+
+    sourcesAccordion.innerHTML = "";
+    if (data.sources && data.sources.length > 0) {
+      data.sources.forEach(src => {
+        const relevanceClass = src.relevance >= 70 ? "bg-success" : src.relevance >= 50 ? "bg-warning" : "bg-secondary";
+        const item = document.createElement("div");
+        item.className = "accordion-item border mb-2 rounded";
+        item.innerHTML = `
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed py-2 px-3" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#src${src.num}">
+              <span class="me-2 text-muted">[${src.num}]</span>
+              <span class="fw-semibold flex-grow-1 text-truncate">${escHtml(src.section_title || src.titre || src.display_title || src.article_title || "")}</span>
+              <span class="badge ${relevanceClass} text-white ms-2 flex-shrink-0" style="font-size:0.7rem">${src.relevance}%</span>
+            </button>
+          </h2>
+          <div id="src${src.num}" class="accordion-collapse collapse">
+            <div class="accordion-body py-2 px-3 small text-muted">
+              ${src.source_type === 'user_document'
+                ? `<div class="badge ${src.is_shared ? 'bg-success' : 'bg-primary'}" style="font-size:.65rem;">${src.is_shared ? '🔗 ' + I18N.shared : '📁 ' + I18N.myDocument}</div>`
+                : src.source_type === 'user_scraper_article'
+                  ? `<div class="badge ${src.is_shared ? 'bg-success' : 'bg-info text-dark'}" style="font-size:.65rem;">${src.is_shared ? '🔗 ' + I18N.shared + ' · ' : '📡 '}${escHtml(src.source_name || '')}</div>`
+                  : ""}
+              ${src.doc_date
+                ? `<div class="mt-1">📅 ${escHtml(src.doc_date)}${src.tag ? " — " + escHtml(src.tag) : ""}</div>`
+                : (src.date ? `<div class="mt-1">📅 ${escHtml(src.date)} — ${escHtml(src.tag || "")}</div>` : "")}
+              ${src.newsletter_title ? `<div class="mt-1">${escHtml(src.newsletter_title)}</div>` : ""}
+              ${src.source ? `<div class="mt-1">${escHtml(src.source)}</div>` : ""}
+              ${src.newsletter_id
+                ? `<a href="/user/newsletter/${src.newsletter_id}" class="btn btn-outline-primary btn-sm mt-2" target="_blank">${I18N.viewNewsletter}</a>`
+                : src.lien
+                  ? `<a href="${escHtml(src.lien)}" class="btn btn-outline-secondary btn-sm mt-2" target="_blank" rel="noopener">${I18N.readArticle}</a>`
+                  : src.article_url
+                    ? `<a href="${escHtml(src.article_url)}" class="btn btn-outline-secondary btn-sm mt-2" target="_blank" rel="noopener">${I18N.readArticle}</a>`
+                    : src.web_url
+                      ? `<a href="${escHtml(src.web_url)}" class="btn btn-outline-secondary btn-sm mt-2" target="_blank" rel="noopener">${I18N.openInProvider || "Open in provider"}</a>`
+                      : ""}
+              ${src.excerpt
+                ? `<div class="mt-2 p-2 rounded" style="background:rgba(0,0,0,.03);font-style:italic;line-height:1.5;">${_highlightKeywords(escHtml(src.excerpt), query)}</div>`
+                : ""}
+            </div>
+          </div>
+        `;
+        sourcesAccordion.appendChild(item);
+      });
+      sourcesBlock.classList.remove("d-none");
+    } else {
+      sourcesBlock.classList.add("d-none");
+    }
+
+    loadingEl.classList.add("d-none");
+    answerEl.classList.remove("d-none");
+
+    // Clear input so the user can ask a follow-up immediately. The thread
+    // above keeps the prior turn visible.
+    queryEl.value = "";
+    charCount.textContent = "0 / 400";
+    threadEl.lastElementChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+  } catch (err) {
+    loadingEl.classList.add("d-none");
+    // Replace the pending bubble's typing animation with the error
+    // message so the thread doesn't keep "thinking" forever, and surface
+    // the same message in the standalone error banner above the thread.
+    if (pendingBubble && pendingBubble.dataset.pending) {
+      _finalizeBubble(pendingBubble, `<span class="text-danger">⚠️ ${escHtml(err.message)}</span>`);
+    }
+    errorEl.textContent = err.message;
+    errorEl.classList.remove("d-none");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "🔍 " + I18N.search;
+  }
+}
+
+function formatAnswer(text) {
+  // SECURITY (audit C-2): the LLM answer can contain attacker-controlled
+  // text injected via prompt injection from indexed documents (a
+  // malicious RSS item can ask the model to embed
+  // "<img src=x onerror=...>" verbatim). We must HTML-escape the answer
+  // text before any innerHTML use, and only re-introduce our own
+  // citation markup AFTER escape.
+  //
+  // Algorithm: escape the whole text first, then replace the (now-safe)
+  // "[N]" sequences with a citation anchor. Paragraph + line breaks are
+  // applied after escape on chunks of escaped text.
+  const escaped = escHtml(text);
+  return escaped
+    .split(/\n{2,}/)
+    .map(p => {
+      // p is already escaped; re-introduce <br> for soft breaks and
+      // a citation anchor for [N] markers (digits-only — escaped
+      // attacker text can't bend the regex).
+      const withBreaks = p.replace(/\n/g, '<br>');
+      const withCites = withBreaks.replace(
+        /\[(\d+)\]/g,
+        '<a href="#src$1" class="cit-link" data-src-num="$1">[$1]</a>',
+      );
+      return `<p>${withCites}</p>`;
+    })
+    .join("");
+}
+
+function safeUrl(raw) {
+  // Validate that a URL uses an allowed scheme before letting it become
+  // an <a href="..."> target. javascript: / data: / vbscript: URLs in
+  // stored content (RSS feed entry url, cloud doc link, scraper article
+  // url) are a one-click XSS — see audit C-3. Returns "#" on rejection
+  // so the link is rendered but inert.
+  if (typeof raw !== "string" || !raw) return "#";
+  // Strip whitespace + control chars that browsers tolerate before the
+  // scheme (e.g. " java\tscript:alert(1)" still executes in some
+  // engines — be paranoid).
+  const trimmed = raw.replace(/[ -\s]/g, "");
+  if (/^https?:/i.test(trimmed) || /^mailto:/i.test(trimmed)) return raw;
+  // Same-origin relative paths and fragments are fine.
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) return raw;
+  if (trimmed.startsWith("#")) return raw;
+  return "#";
+}
+
+// Click a [N] citation → open the matching source accordion, scroll to
+// it, and flash a highlight ring so the user sees where the answer
+// claim came from.
+document.addEventListener("click", (e) => {
+  const link = e.target.closest(".cit-link");
+  if (!link) return;
+  e.preventDefault();
+  const num = link.dataset.srcNum;
+  if (!num) return;
+  const target = document.getElementById(`src${num}`);
+  if (!target) return;
+  // Bootstrap collapse: open it without a separate import.
+  if (!target.classList.contains("show")) {
+    target.classList.add("show");
+    const button = document.querySelector(`[data-bs-target="#src${num}"]`);
+    if (button) button.classList.remove("collapsed");
+  }
+  const item = target.closest(".accordion-item");
+  if (item) {
+    item.scrollIntoView({ behavior: "smooth", block: "center" });
+    item.classList.add("citation-flash");
+    setTimeout(() => item.classList.remove("citation-flash"), 1600);
+  }
+});
+
+// Highlight every keyword from the user's last query inside an excerpt
+// — mirrors what most RAG UIs do to make the link between question and
+// retrieved passage visible at a glance.
+const _STOP = new Set([
+  "le","la","les","un","une","des","du","de","et","ou","est","sont",
+  "the","a","an","is","are","was","were","of","and","or","that","with","for","to","in","on",
+]);
+
+function _highlightKeywords(html, query) {
+  if (!query) return html;
+  const tokens = query
+    .toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")  // strip combining marks
+    .split(/\W+/)
+    .filter(t => t.length >= 4 && !_STOP.has(t));
+  if (!tokens.length) return html;
+  // Escape regex special chars and build an alternation pattern.
+  const pattern = new RegExp(
+    `(${tokens.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`,
+    "gi",
+  );
+  return html.replace(pattern, '<mark class="cit-hl">$1</mark>');
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+</script>
+{% endblock %}

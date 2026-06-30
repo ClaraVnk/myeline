@@ -1,0 +1,65 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ _("Connect WebDAV") }} — Myeline{% endblock %}
+{% block content %}
+
+<div class="container my-5 px-3" style="max-width:580px;">
+
+  <div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{{ url_for('user_cloud.cloud_connections') }}" class="btn btn-outline-secondary btn-sm">← {{ _("Back") }}</a>
+    <img src="{{ url_for('static', filename='img/providers/webdav.svg') }}" alt="WebDAV" style="height:2rem;">
+    <h2 class="fw-bold mb-0">{{ _("Connect WebDAV") }}</h2>
+  </div>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="alert alert-info rounded-4 d-flex gap-2 align-items-start mb-3 small">
+    <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
+    <div>
+      {{ _("Compatible with Nextcloud, ownCloud, Seafile, and any WebDAV server.") }}<br>
+      <strong>{{ _("Nextcloud URL example:") }}</strong>
+      <code>https://your-server.example.com/remote.php/dav/files/username/</code>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="mb-3">
+        <label for="url" class="form-label fw-semibold">{{ _("WebDAV URL") }}</label>
+        <input type="url" id="url" name="url" class="form-control"
+               placeholder="https://cloud.example.com/remote.php/dav/files/alice/" required
+               value="{{ form_data.url if form_data else '' }}"
+               autocomplete="off">
+      </div>
+
+      <div class="mb-3">
+        <label for="username" class="form-label fw-semibold">{{ _("Username") }}</label>
+        <input type="text" id="username" name="username" class="form-control"
+               placeholder="alice" required
+               value="{{ form_data.username if form_data else '' }}"
+               autocomplete="username">
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="form-label fw-semibold">{{ _("Password") }}</label>
+        <input type="password" id="password" name="password" class="form-control"
+               placeholder="••••••••" required
+               autocomplete="new-password">
+        <div class="form-text">{{ _("For Nextcloud, use an App Password (Settings → Security → App passwords) rather than your main password.") }}</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">{{ _("Connect") }}</button>
+    </form>
+
+  </div>
+
+</div>
+{% endblock %}

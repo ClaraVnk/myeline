@@ -1,0 +1,39 @@
+{# Licence status banner — shown on the admin dashboard whenever the
+   license is approaching expiry. Three states:
+
+     - days_left > 30  → no banner
+     - 7 < days_left ≤ 30 → yellow warning, "renew soon"
+     - 1 ≤ days_left ≤ 7  → red urgent banner
+     - days_left == 0     → app refuses to start anyway (this template
+                            never renders in that state)
+
+   On classic instances issued by Clara to herself, perpetual licenses
+   would carry license_expires_at = None and skip the banner entirely.
+#}
+{% if license_expires_at and license_days_left is not none and license_days_left <= 30 %}
+  {% set _state = 'critical' if license_days_left <= 7 else 'warning' %}
+  {% set _class = 'alert-danger' if _state == 'critical' else 'alert-warning' %}
+  {% set _icon = 'bi-exclamation-octagon-fill' if _state == 'critical' else 'bi-exclamation-triangle-fill' %}
+  <div class="alert {{ _class }} d-flex align-items-start mb-3"
+       role="alert" style="border-radius:.5rem;">
+    <i class="bi {{ _icon }} me-2 mt-1" style="font-size:1.15rem;"></i>
+    <div class="flex-grow-1">
+      <strong>
+        {% if _state == 'critical' %}
+          Licence Myeline expire dans {{ license_days_left }} jour{{ 's' if license_days_left > 1 else '' }}.
+        {% else %}
+          Licence Myeline expire le {{ license_expires_at.strftime('%d %B %Y') }}
+          ({{ license_days_left }} jours restants).
+        {% endif %}
+      </strong>
+      <div class="small mt-1">
+        Sans renouvellement, l'app refusera de démarrer après cette date.
+        Contactez <a href="mailto:hello@myeline.io">hello@myeline.io</a> pour
+        recevoir votre nouvelle clé.
+        {% if license_customer %}
+          <span class="text-muted">— Licence émise pour : {{ license_customer }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endif %}
